@@ -1,3 +1,4 @@
+import "./arbitrage-monitor.test";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { DatabaseSync } from "node:sqlite";

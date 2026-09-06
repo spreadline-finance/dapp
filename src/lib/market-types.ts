@@ -6,6 +6,9 @@ export type StockAsset = {
   multiplier: string;
   logo: string | null;
   active: boolean;
+  pendingMultiplier?: string | null;
+  pendingMultiplierEffectiveTime?: string | null;
+  tradingCapabilities?: { fractionalTradability: string | null; allDayTradability: string | null; extendedHoursFractionalTradability: boolean | null } | null;
 };
 export type ReferencePrice = {
   symbol: string;
@@ -14,14 +17,23 @@ export type ReferencePrice = {
   generatedAt: string;
   halted: boolean;
   currency: "USD";
+  dailyTradingVolume?: string | null;
 };
-export type Catalog = {
+export type SnapshotStatus = {
+  dataStatus?: { state: "cached"; reason: string; retryAt: string };
+};
+export type Catalog = SnapshotStatus & {
   assets: StockAsset[];
   fetchedAt: string;
   rejected: number;
 };
-export type PriceBook = { quotes: ReferencePrice[]; fetchedAt: string };
-export type NetworkState = {
+export type PriceBook = SnapshotStatus & {
+  quotes: ReferencePrice[];
+  fetchedAt: string;
+  unavailableSymbols?: string[];
+  cachedSymbols?: string[];
+};
+export type NetworkState = SnapshotStatus & {
   chainId: number;
   blockNumber: string;
   blockHash: string;
@@ -38,7 +50,7 @@ export type Pool = {
   priceUSDG: number | null;
   active: boolean;
 };
-export type PoolBook = {
+export type PoolBook = SnapshotStatus & {
   symbol: string;
   pools: Pool[];
   blockNumber: string;
@@ -68,6 +80,13 @@ export type QuoteBook = {
   routes: RouteQuote[];
   attempted: number;
   failed: number;
+  coverage?: {
+    venue: "Uniswap V3";
+    feeTiers: number[];
+    discoveredPools: number;
+    activePools: number;
+  };
+  availability?: "quoted" | "no_pools" | "one_active_pool" | "no_active_pools" | "simulations_failed";
   executionEnabled: false;
 };
 export type Portfolio = {
@@ -82,12 +101,14 @@ export type Portfolio = {
     balance: string | null;
   }[];
 };
-export type CorporateActions = {
+export type CorporateActions = SnapshotStatus & {
   items: {
     symbol: string;
     type: string;
     status: string;
     date: string | null;
+    id?: string;
+    detail?: string | null;
   }[];
   fetchedAt: string;
 };
@@ -97,6 +118,7 @@ export const PUBLIC_RPC = "https://rpc.mainnet.chain.robinhood.com";
 export const USDG = "0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168" as const;
 export const V3_FACTORY = "0x1f7d7550B1b028f7571E69A784071F0205FD2EfA" as const;
 export const V3_QUOTER = "0x33e885eD0Ec9bF04EcfB19341582aADCb4c8A9E7" as const;
+export const SWAP_ROUTER = "0xcaf681a66d020601342297493863e78c959e5cb2" as const;
 export const TRACKED_SYMBOLS = [
   "NVDA",
   "AAPL",
