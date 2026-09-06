@@ -5,6 +5,8 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { ArrowUpRight, Check, LogOut, Wallet, X } from "lucide-react";
 import { CHAIN_ID, EXPLORER, PUBLIC_RPC } from "@/lib/market-types";
 import { shortAddress } from "@/lib/live-api";
+import { canActivateDemo, isLocalDemoHost, type DemoWallet } from "@/lib/demo-wallet";
+import "./demo-wallet.css";
 type Provider = {
   request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
   on?: (event: string, handler: (value: unknown) => void) => void;
@@ -35,9 +37,22 @@ export function useWallet() {
   const [chainId, setChainId] = useState<number | null>(null);
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
+  const [demoWallets, setDemoWallets] = useState<readonly DemoWallet[]>([]);
+  const [demoWallet, setDemoWallet] = useState<DemoWallet | null>(null);
   const generation = useRef(0);
   const session = useRef(0);
   const unsubscribe = useRef<(() => void) | null>(null);
+  useEffect(() => {
+    // This literal build guard removes the fixture import from production.
+    if (process.env.NODE_ENV === "development") {
+      if (!isLocalDemoHost(window.location.hostname)) return;
+      let active = true;
+      void import("@/lib/demo-wallet-presets").then(({ DEMO_WALLETS }) => {
+        if (active) setDemoWallets(DEMO_WALLETS);
+      }).catch(() => { /* Real wallet access remains available if a dev chunk fails. */ });
+      return () => { active = false; };
+    }
+  }, []);
   useEffect(() => {
     const operationCounter = generation;
     const sessionCounter = session;
@@ -102,8 +117,22 @@ export function useWallet() {
     setChainId(null);
     setError("");
     setPending(false);
+    setDemoWallet(null);
+  }
+  function selectDemoWallet(id: string) {
+    if (!canActivateDemo(process.env.NODE_ENV, window.location.hostname, pending)) {
+      if (process.env.NODE_ENV === "development" && isLocalDemoHost(window.location.hostname))
+        setError("Finish or dismiss the current wallet request before switching to a demo wallet.");
+      return false;
+    }
+    const preset = demoWallets.find((item) => item.id === id);
+    if (!preset) return false;
+    disconnect();
+    setDemoWallet(preset);
+    return true;
   }
   async function connect(wallet: WalletOption) {
+    setDemoWallet(null);
     const id = ++generation.current;
     const walletSession = ++session.current;
     unsubscribe.current?.();
@@ -166,7 +195,7 @@ export function useWallet() {
     }
   }
   async function switchNetwork() {
-    if (!selected) return;
+    if (demoWallet || !selected) return;
     const id = ++generation.current;
     const wallet = selected;
     setError("");
@@ -213,9 +242,12 @@ export function useWallet() {
   }
   return {
     wallets,
-    selected,
-    account,
-    chainId,
+    selected: demoWallet ? null : selected,
+    account: demoWallet ? null : account,
+    chainId: demoWallet ? null : chainId,
+    demoWallets,
+    demoWallet,
+    selectDemoWallet,
     error,
     pending,
     connect,
@@ -230,7 +262,7 @@ export function WalletButton({ wallet }: { wallet: WalletState }) {
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Trigger className="button button-primary">
         <Wallet size={15} />
-        {wallet.account ? shortAddress(wallet.account) : "Connect wallet"}
+        {wallet.demoWallet ? `Demo · ${wallet.demoWallet.name}` : wallet.account ? shortAddress(wallet.account) : "Connect wallet"}
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="dialog-overlay" />
@@ -239,7 +271,7 @@ export function WalletButton({ wallet }: { wallet: WalletState }) {
             <div>
               <span className="eyebrow">YOUR WALLET</span>
               <Dialog.Title className="display">
-                {wallet.account
+                {wallet.demoWallet ? "Your local demo wallet." : wallet.account
                   ? "Connected account."
                   : "Connect to Spreadline."}
               </Dialog.Title>
@@ -252,10 +284,9 @@ export function WalletButton({ wallet }: { wallet: WalletState }) {
             </Dialog.Close>
           </div>
           <Dialog.Description>
-            Read your balances on Robinhood Chain. Connecting does not approve
-            spending or submit a trade.
+            {wallet.demoWallet ? "These holdings are simulated. Market quotes remain live. Demo mode cannot sign or submit transactions." : "Read your balances on Robinhood Chain. Connecting does not approve spending or submit a trade."}
           </Dialog.Description>
-          {wallet.account ? (
+          {wallet.demoWallet ? <div className="demo-wallet-active"><span><Check size={18}/> {wallet.demoWallet.name} · simulated holdings</span><button className="button button-secondary" onClick={wallet.disconnect}><LogOut size={14}/> Exit demo mode</button></div> : wallet.account ? (
             <>
               <div className="wallet-account">
                 <Check size={19} />
@@ -321,6 +352,12 @@ export function WalletButton({ wallet }: { wallet: WalletState }) {
               </p>
             </div>
           )}
+          {wallet.demoWallets.length > 0 && <section className="demo-wallet-picker" aria-label="Local demo wallets">
+            <div><span className="eyebrow">LOCAL DEVELOPMENT ONLY</span><h3>Try a demo wallet</h3><p>Pick preset holdings to explore Portfolio and the position planner. No extension needed. Resets on reload.</p></div>
+            {wallet.demoWallets.map((preset) => <button key={preset.id} type="button" disabled={wallet.pending} aria-label={`Use ${preset.name} demo wallet`} aria-pressed={wallet.demoWallet?.id === preset.id} onClick={() => { if (wallet.selectDemoWallet(preset.id)) setOpen(false); }}>
+              <span><strong>{preset.name}</strong><small>{preset.description}</small><span>{Number(preset.balances.USDG).toLocaleString("en-US")} USDG · {Number(preset.balances.NVDA).toLocaleString("en-US", { maximumFractionDigits: 4 })} NVDA</span></span><span aria-hidden="true">{wallet.demoWallet?.id === preset.id ? <Check size={18}/> : <ArrowUpRight size={18}/>}</span>
+            </button>)}
+          </section>}
           {wallet.error && (
             <p className="desk-error-inline" role="alert">
               {wallet.error}
@@ -330,4 +367,9 @@ export function WalletButton({ wallet }: { wallet: WalletState }) {
       </Dialog.Portal>
     </Dialog.Root>
   );
+}
+
+export function DemoWalletNotice({ wallet }: { wallet: WalletState }) {
+  if (!wallet.demoWallet) return null;
+  return <div className="demo-wallet-notice" role="status"><Wallet size={18}/><div><strong>Local simulation · {wallet.demoWallet.name}</strong><span>Holdings are simulated; quotes are live. Transactions disabled.</span></div><button type="button" onClick={wallet.disconnect}>Exit demo <LogOut size={14}/></button></div>;
 }

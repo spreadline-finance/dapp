@@ -1,0 +1,52 @@
+.demo-wallet-picker { margin-top: 24px; padding-top: 22px; border-top: 1px solid #d8dfcd; display: grid; gap: 10px; }
+.demo-wallet-picker h3 { margin: 7px 0; font-size: 22px; letter-spacing: -.7px; }
+.demo-wallet-picker p { color: #626e5a; font-size: 13px; line-height: 1.6; margin: 0 0 5px; }
+.demo-wallet-picker > button { display: flex; align-items: center; justify-content: space-between; gap: 16px; width: 100%; text-align: left; padding: 15px; border: 1px solid #d5dfc7; border-radius: 12px; background: #edf2e3; color: #263b23; cursor: pointer; }
+.demo-wallet-picker > button[aria-pressed="true"] { background: #dfeacc; border-color: #6d8359; }
+.demo-wallet-picker > button > span:first-child { display: grid; gap: 5px; }
+.demo-wallet-picker strong { font-size: 15px; }
+.demo-wallet-picker small { font-size: 12px; line-height: 1.5; color: #596650; }
+.demo-wallet-picker button span span { font-size: 11px; font-variant-numeric: tabular-nums; }
+.demo-wallet-picker button:disabled { opacity: .5; cursor: wait; }
+.demo-wallet-picker button:focus-visible, .demo-wallet-notice button:focus-visible, .demo-holdings button:focus-visible { outline: 2px solid #365828; outline-offset: 3px; }
+.demo-wallet-active { display: grid; gap: 15px; margin-top: 22px; }
+.demo-wallet-active > span { display: flex; align-items: center; gap: 8px; color: #456132; font-size: 14px; }
+.demo-wallet-notice { display: flex; align-items: center; gap: 12px; padding: 14px 18px; margin-bottom: 22px; border: 1px solid #b8c99f; border-radius: 12px; background: #e8eedb; color: #344c27; }
+.demo-wallet-notice > svg { flex-shrink: 0; }
+.demo-wallet-notice > div { display: grid; gap: 4px; flex: 1; font-size: 13px; line-height: 1.5; }
+.demo-wallet-notice span { color: #536448; font-size: 12px; }
+.demo-wallet-notice button { display: flex; align-items: center; gap: 8px; min-height: 44px; border: 0; background: transparent; font-size: 12px; font-weight: 600; color: #344c27; cursor: pointer; white-space: nowrap; }
+.demo-cash-balances { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+.demo-cash-balances > div { padding: 24px; border: 1px solid #d9e1cf; border-radius: 14px; background: #f4f5ed; display: grid; gap: 12px; }
+.demo-cash-balances span { color: #69755e; font-size: 12px; }
+.demo-cash-balances strong { font-size: 28px; font-weight: 500; letter-spacing: -1px; font-variant-numeric: tabular-nums; }
+.demo-cash-balances small { font-size: 14px; letter-spacing: 0; color: #5e6d52; }
+.demo-holdings { overflow-x: auto; border: 1px solid #d9e1cf; border-radius: 14px; background: #f8f8f1; }
+.demo-holdings table { width: 100%; border-collapse: collapse; }
+.demo-holdings th, .demo-holdings td { text-align: left; padding: 18px 22px; border-bottom: 1px solid #e1e5d7; }
+.demo-holdings thead th { font-size: 11px; font-weight: 500; color: #66735b; }
+.demo-holdings tbody th > span { display: flex; align-items: center; gap: 12px; font-size: 14px; }
+.demo-holdings tr:last-child th, .demo-holdings tr:last-child td { border-bottom: 0; }
+.demo-exact-amount { font-size: 13px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.demo-holdings td:last-child { text-align: right; }
+.demo-holdings button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 8px 12px; background: #e8eedc; border: 1px solid #d5dfc6; border-radius: 8px; color: #39512b; font-size: 12px; cursor: pointer; }
+.demo-holdings button:disabled { opacity: .45; cursor: default; }
+.demo-portfolio-footnote { font-size: 12px; color: #64715a; line-height: 1.7; margin-top: 16px; }
+.planner-demo-balance { display: grid; gap: 9px; padding: 14px; margin: 10px 0 18px; background: #eaf0de; border: 1px solid #d1ddbe; border-radius: 10px; }
+.planner-demo-balance span { font-size: 12px; color: #526745; overflow-wrap: anywhere; line-height: 1.6; }
+.planner-demo-balance .planner-secondary { width: 100%; }
+.demo-execution-notice { padding: 18px; background: #edf2e3; border: 1px solid #d3dec7; border-radius: 12px; color: #3e5630; font-size: 13px; line-height: 1.7; }
+.demo-execution-notice strong { display: block; margin-bottom: 6px; }
+@media (max-width: 600px) {
+  .demo-wallet-notice { flex-wrap: wrap; gap: 8px; padding: 12px; }
+  .demo-wallet-notice > div { flex-basis: calc(100% - 34px); }
+  .demo-wallet-notice button { margin-left: 26px; }
+  .demo-cash-balances { gap: 10px; }
+  .demo-cash-balances > div { padding: 16px; }
+  .demo-cash-balances strong { font-size: 23px; }
+  .demo-holdings th, .demo-holdings td { padding: 12px 10px; }
+  .demo-holdings tbody th > span { gap: 7px; }
+  .demo-holdings button { font-size: 11px; padding: 8px; }
+  .demo-holdings button svg { display: none; }
+  .demo-exact-amount { max-width: 130px; font-size: 12px; }
+}
