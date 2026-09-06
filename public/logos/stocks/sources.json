@@ -1,0 +1,1749 @@
+{
+  "retrievedAt": "2026-09-06",
+  "usage": "Underlying company and fund identification in the local Spreadline interface. Third-party marks remain the property of their owners.",
+  "assets": [
+    {
+      "symbol": "AAOI",
+      "name": "Applied Optoelectronics",
+      "url": "https://images.financialmodelingprep.com/symbol/AAOI.png",
+      "bytes": 8063,
+      "width": 128,
+      "height": 128,
+      "sha256": "30b9bfb6111413f7737b0f50e0f356b93d54b14c44f68bdaa23cdedd3cbcde04"
+    },
+    {
+      "symbol": "AAPL",
+      "name": "Apple",
+      "url": "https://images.financialmodelingprep.com/symbol/AAPL.png",
+      "bytes": 1974,
+      "width": 100,
+      "height": 100,
+      "sha256": "41483c742e810831c12663ef2040d306f81440e15126f34b623dd08a09bbb63e"
+    },
+    {
+      "symbol": "ABCL",
+      "name": "Abcellera Biologics",
+      "url": "https://images.financialmodelingprep.com/symbol/ABCL.png",
+      "bytes": 5171,
+      "width": 128,
+      "height": 128,
+      "sha256": "08b99501b281c484eb8c72ff5a5f2f42c7b3966252d593d6a026079c6d2534dd"
+    },
+    {
+      "symbol": "ADBE",
+      "name": "Adobe",
+      "url": "https://images.financialmodelingprep.com/symbol/ADBE.png",
+      "bytes": 8431,
+      "width": 250,
+      "height": 250,
+      "sha256": "e48f89d4e1ebee9f4679a05dec4386adc62549f10bb89aa8886ff3a2629309a3"
+    },
+    {
+      "symbol": "AEHR",
+      "name": "Aehr",
+      "url": "https://images.financialmodelingprep.com/symbol/AEHR.png",
+      "bytes": 731,
+      "width": 128,
+      "height": 128,
+      "sha256": "5f1fc6fb65ae8c0764856288fbbb41d18d94517ac1080a033250ae950bcb47dd"
+    },
+    {
+      "symbol": "AEIS",
+      "name": "Advanced Energy",
+      "url": "https://images.financialmodelingprep.com/symbol/AEIS.png",
+      "bytes": 9345,
+      "width": 250,
+      "height": 250,
+      "sha256": "82ce683b4ccb729075b884b22d18d8821f9674d8e6cf175bd8b59c26a55a2701"
+    },
+    {
+      "symbol": "ALAB",
+      "name": "Astera Labs, Inc.",
+      "url": "https://images.financialmodelingprep.com/symbol/ALAB.png",
+      "bytes": 5745,
+      "width": 100,
+      "height": 100,
+      "sha256": "311ac14a95db2532d6c01f396365c631f7a2f93f3958bffb02d5fec0d1ac1e5f"
+    },
+    {
+      "symbol": "AMAT",
+      "name": "Applied Materials",
+      "url": "https://images.financialmodelingprep.com/symbol/AMAT.png",
+      "bytes": 12419,
+      "width": 250,
+      "height": 250,
+      "sha256": "7627d2610c4d9e8442c2c06969ebdf1b15169199fc3f836a95cc36021efab0ab"
+    },
+    {
+      "symbol": "AMBA",
+      "name": "Ambarella",
+      "url": "https://images.financialmodelingprep.com/symbol/AMBA.png",
+      "bytes": 6795,
+      "width": 128,
+      "height": 128,
+      "sha256": "a8daa6fd27249678c9da2ce0dd76427710efa48289e1b1a9a97598c02390938a"
+    },
+    {
+      "symbol": "AMC",
+      "name": "AMC Entertainment",
+      "url": "https://images.financialmodelingprep.com/symbol/AMC.png",
+      "bytes": 8048,
+      "width": 250,
+      "height": 250,
+      "sha256": "5752c44ce93ccfee89591c1685a557c0ae31e14c7f659001098d8d7bf5af2dc4"
+    },
+    {
+      "symbol": "AMD",
+      "name": "AMD",
+      "url": "https://images.financialmodelingprep.com/symbol/AMD.png",
+      "bytes": 5301,
+      "width": 250,
+      "height": 250,
+      "sha256": "2c94246f0c6dd24e4136d603400d486def9be17696db53d7841533011b3a99c9"
+    },
+    {
+      "symbol": "AMKR",
+      "name": "Amkor Technology",
+      "url": "https://images.financialmodelingprep.com/symbol/AMKR.png",
+      "bytes": 9590,
+      "width": 128,
+      "height": 128,
+      "sha256": "605fcffbb096142ebb1536ad4e4f8ff5cde1eea2d06abe12bf265c8b84215c2d"
+    },
+    {
+      "symbol": "AMZN",
+      "name": "Amazon",
+      "url": "https://images.financialmodelingprep.com/symbol/AMZN.png",
+      "bytes": 9484,
+      "width": 250,
+      "height": 250,
+      "sha256": "4940123a81ddefbf5915f143f2ab7220e0a76e5c06e6b7a9eaad1b4acf42da51"
+    },
+    {
+      "symbol": "ANET",
+      "name": "Arista",
+      "url": "https://images.financialmodelingprep.com/symbol/ANET.png",
+      "bytes": 7799,
+      "width": 250,
+      "height": 250,
+      "sha256": "8d92bfcf7390edba1ab178f3c090d2a5f36020e29a36cb532ae3bcf8020ba09f"
+    },
+    {
+      "symbol": "APLD",
+      "name": "Applied Digital",
+      "url": "https://images.financialmodelingprep.com/symbol/APLD.png",
+      "bytes": 10609,
+      "width": 250,
+      "height": 250,
+      "sha256": "68e88642d45640e0afa4563eed9ef3947912f7f6d2800c683c6f56ba8f26188e"
+    },
+    {
+      "symbol": "APP",
+      "name": "AppLovin",
+      "url": "https://images.financialmodelingprep.com/symbol/APP.png",
+      "bytes": 4706,
+      "width": 128,
+      "height": 128,
+      "sha256": "daefac1fa9a309660a858039b4dc5c78268988da34d84e5b79733509a3189f0c"
+    },
+    {
+      "symbol": "ASML",
+      "name": "ASML Holding NV",
+      "url": "https://images.financialmodelingprep.com/symbol/ASML.png",
+      "bytes": 8223,
+      "width": 100,
+      "height": 100,
+      "sha256": "71881684c6043abd8121aee1e8e4a8032b50b36c69026da066f16e6cdc8d4d3e"
+    },
+    {
+      "symbol": "ASTS",
+      "name": "AST SpaceMobile",
+      "url": "https://images.financialmodelingprep.com/symbol/ASTS.png",
+      "bytes": 3639,
+      "width": 250,
+      "height": 250,
+      "sha256": "036f63e081b730c30c5cf839939f9dc2cf261c814e8d56886f5eaff4cfb71d21"
+    },
+    {
+      "symbol": "AUR",
+      "name": "Aurora Innovation",
+      "url": "https://images.financialmodelingprep.com/symbol/AUR.png",
+      "bytes": 1531,
+      "width": 144,
+      "height": 144,
+      "sha256": "31ad54c0ed24bab14ec2f3edee2e6cd21402d8299cf8ccea74b027ff7a7a3f5a"
+    },
+    {
+      "symbol": "AVAV",
+      "name": "AeroVironment",
+      "url": "https://images.financialmodelingprep.com/symbol/AVAV.png",
+      "bytes": 5030,
+      "width": 250,
+      "height": 250,
+      "sha256": "47e448878b16c263cce7c9ef98f3a139c159bd020b51722fce91b4fae55aa7f3"
+    },
+    {
+      "symbol": "AVGO",
+      "name": "Broadcom",
+      "url": "https://images.financialmodelingprep.com/symbol/AVGO.png",
+      "bytes": 17025,
+      "width": 250,
+      "height": 250,
+      "sha256": "0afd68b45dbefb8ad9e75bc9cda3898a3d75ab026dde215cfe9def48d4fb4a41"
+    },
+    {
+      "symbol": "AXON",
+      "name": "Axon",
+      "url": "https://images.financialmodelingprep.com/symbol/AXON.png",
+      "bytes": 9973,
+      "width": 250,
+      "height": 250,
+      "sha256": "84143090f30aa08c28133782ed10f2653a4579a1f8f66c57cec24babe002b204"
+    },
+    {
+      "symbol": "AXTI",
+      "name": "AXT",
+      "url": "https://images.financialmodelingprep.com/symbol/AXTI.png",
+      "bytes": 3531,
+      "width": 100,
+      "height": 100,
+      "sha256": "d98853d62e7076211a21b55c5261fc465a88a70e4906cfa0669b5afd282bd27f"
+    },
+    {
+      "symbol": "BA",
+      "name": "Boeing",
+      "url": "https://images.financialmodelingprep.com/symbol/BA.png",
+      "bytes": 12399,
+      "width": 250,
+      "height": 250,
+      "sha256": "7b4d8a2bd69182a69b0faf2a29c08a811a9c76ab440fa62259792b79a83054c0"
+    },
+    {
+      "symbol": "BABA",
+      "name": "Alibaba",
+      "url": "https://images.financialmodelingprep.com/symbol/BABA.png",
+      "bytes": 10571,
+      "width": 250,
+      "height": 250,
+      "sha256": "9fc084fb10f7462a34a2c627f76fcd3d5700ac9f64b53fe1865d89f4d4054d7f"
+    },
+    {
+      "symbol": "BB",
+      "name": "Blackberry",
+      "url": "https://images.financialmodelingprep.com/symbol/BB.png",
+      "bytes": 3614,
+      "width": 128,
+      "height": 128,
+      "sha256": "962276cb0248bce63ec0c51745298665372f857820baef32b25bf79fede7700d"
+    },
+    {
+      "symbol": "BE",
+      "name": "Bloom Energy",
+      "url": "https://images.financialmodelingprep.com/symbol/BE.png",
+      "bytes": 22218,
+      "width": 250,
+      "height": 250,
+      "sha256": "24e44000195cc877327ede36e74ecbd67f9abb77f8d7670db9903c3e043cc2f5"
+    },
+    {
+      "symbol": "BND",
+      "name": "Vanguard Total Bond Market ETF",
+      "url": "https://images.financialmodelingprep.com/symbol/BND.png",
+      "bytes": 1873,
+      "width": 144,
+      "height": 144,
+      "sha256": "5e7497cc7e92b5328ba375903eb506ce399f1a97c89e4345d8f6b07ff7ff4a2f"
+    },
+    {
+      "symbol": "BULL",
+      "name": "Webull",
+      "url": "https://images.financialmodelingprep.com/symbol/BULL.png",
+      "bytes": 4263,
+      "width": 100,
+      "height": 100,
+      "sha256": "c6ef2fcfb23f0740c818820c471c7e3bf26002bc1ef43d8245b8fb1748f1fbc2"
+    },
+    {
+      "symbol": "CBRS",
+      "name": "Cerebras Systems",
+      "url": "https://images.financialmodelingprep.com/symbol/CBRS.png",
+      "bytes": 3861,
+      "width": 100,
+      "height": 100,
+      "sha256": "ce1d9414e664084cf844582c9ee5d7b4ebd1cedec04e0c3d1069098fc5e7e728"
+    },
+    {
+      "symbol": "CCL",
+      "name": "Carnival Corporation",
+      "url": "https://images.financialmodelingprep.com/symbol/CCL.png",
+      "bytes": 31929,
+      "width": 250,
+      "height": 250,
+      "sha256": "c0d8f9e6ef14ce2b528a62bdf220196499fb7fe7835affdb4ff1b6df51caa920"
+    },
+    {
+      "symbol": "CEG",
+      "name": "Constellation Energy",
+      "url": "https://images.financialmodelingprep.com/symbol/CEG.png",
+      "bytes": 1718,
+      "width": 128,
+      "height": 128,
+      "sha256": "c5ccaccb4415ed032972827d623bb299ea746bde0eb45d4ad7e62ef633803dbd"
+    },
+    {
+      "symbol": "CELH",
+      "name": "Celsius",
+      "url": "https://images.financialmodelingprep.com/symbol/CELH.png",
+      "bytes": 26678,
+      "width": 250,
+      "height": 250,
+      "sha256": "040f3ab037fff38249c58bc2a12bf427b7ffa1f1e57cee1c458ecfd550b31d7f"
+    },
+    {
+      "symbol": "CIEN",
+      "name": "Ciena",
+      "url": "https://images.financialmodelingprep.com/symbol/CIEN.png",
+      "bytes": 8740,
+      "width": 250,
+      "height": 250,
+      "sha256": "85278cc5df3ffbacd9581b3b10d9bca4407d9087098dfe7e96d284989de02f4c"
+    },
+    {
+      "symbol": "CLOV",
+      "name": "Clover Health Investments",
+      "url": "https://images.financialmodelingprep.com/symbol/CLOV.png",
+      "bytes": 9846,
+      "width": 200,
+      "height": 200,
+      "sha256": "7a86e7f6fe5441ae9f001d2aba46185e3dcfd44f1ffd753e1606ef7fa7c2595d"
+    },
+    {
+      "symbol": "CLS",
+      "name": "Celestica",
+      "url": "https://images.financialmodelingprep.com/symbol/CLS.png",
+      "bytes": 18996,
+      "width": 250,
+      "height": 250,
+      "sha256": "e2c5ac626d526de15e0267bedb336ce0559592ac5e07ee3839cbd539e12f7397"
+    },
+    {
+      "symbol": "CLSK",
+      "name": "CleanSpark",
+      "url": "https://images.financialmodelingprep.com/symbol/CLSK.png",
+      "bytes": 15407,
+      "width": 250,
+      "height": 250,
+      "sha256": "f05a834804570a58493c88b81700c43d2fa8e62fc796e5def8579c32b2305e42"
+    },
+    {
+      "symbol": "COHR",
+      "name": "Coherent",
+      "url": "https://images.financialmodelingprep.com/symbol/COHR.png",
+      "bytes": 3680,
+      "width": 100,
+      "height": 100,
+      "sha256": "0adede12326356e4799f7afac3cadb9d04313e4e982b2d6de4524d3cc1b923bc"
+    },
+    {
+      "symbol": "COIN",
+      "name": "Coinbase",
+      "url": "https://images.financialmodelingprep.com/symbol/COIN.png",
+      "bytes": 17751,
+      "width": 250,
+      "height": 250,
+      "sha256": "7e6731c56cc0420dd150bf591bd370d5db6271dffb815df36f71b59ba0bbb2da"
+    },
+    {
+      "symbol": "COST",
+      "name": "Costco",
+      "url": "https://images.financialmodelingprep.com/symbol/COST.png",
+      "bytes": 5868,
+      "width": 128,
+      "height": 128,
+      "sha256": "64f1f9025601494ea8848780219672c8b83d1aa8993a2dd285183c89caf516a1"
+    },
+    {
+      "symbol": "CRCL",
+      "name": "Circle Internet Group",
+      "url": "https://images.financialmodelingprep.com/symbol/CRCL.png",
+      "bytes": 3765,
+      "width": 100,
+      "height": 100,
+      "sha256": "2f896f7a08d098a4fbfeff30d1025aabef0334d8f0a13662f5a980d503b44291"
+    },
+    {
+      "symbol": "CRDO",
+      "name": "Credo Technology Group",
+      "url": "https://images.financialmodelingprep.com/symbol/CRDO.png",
+      "bytes": 13573,
+      "width": 250,
+      "height": 250,
+      "sha256": "d081abb463bbe92138fd933bf17a4b458a98ec0f489c6713df13ac0f5f89daad"
+    },
+    {
+      "symbol": "CRM",
+      "name": "Salesforce",
+      "url": "https://images.financialmodelingprep.com/symbol/CRM.png",
+      "bytes": 12664,
+      "width": 250,
+      "height": 250,
+      "sha256": "abd0c3efe9b4cd4541fbc642b1cf7575898361ca1d89d03b857d7bc0fd2fede5"
+    },
+    {
+      "symbol": "CRWD",
+      "name": "CrowdStrike Holdings",
+      "url": "https://images.financialmodelingprep.com/symbol/CRWD.png",
+      "bytes": 17130,
+      "width": 250,
+      "height": 250,
+      "sha256": "dc8d79793af5573e8c89256d46de5fb467ef4bd1b52158f06ae99d251e1b7adf"
+    },
+    {
+      "symbol": "CRWV",
+      "name": "CoreWeave",
+      "url": "https://images.financialmodelingprep.com/symbol/CRWV.png",
+      "bytes": 2985,
+      "width": 100,
+      "height": 100,
+      "sha256": "31eea998270f715c1e7966e72bb270cf94ce286b0d9d508ed860c7e99b769cdf"
+    },
+    {
+      "symbol": "CSCO",
+      "name": "Cisco Systems",
+      "url": "https://images.financialmodelingprep.com/symbol/CSCO.png",
+      "bytes": 9940,
+      "width": 250,
+      "height": 250,
+      "sha256": "b07274fdd0c9d14d8f0d4ad952888ff2ea47b5315fe95e1b0b35317e9697989c"
+    },
+    {
+      "symbol": "CTSH",
+      "name": "Cognizant",
+      "url": "https://images.financialmodelingprep.com/symbol/CTSH.png",
+      "bytes": 4687,
+      "width": 100,
+      "height": 100,
+      "sha256": "b47b01afb33e2f62f61a1f5a0451683815778ee1de23c190266398ad5c4f9e55"
+    },
+    {
+      "symbol": "CVNA",
+      "name": "Carvana",
+      "url": "https://images.financialmodelingprep.com/symbol/CVNA.png",
+      "bytes": 13957,
+      "width": 250,
+      "height": 250,
+      "sha256": "99c24f82503f6bb80d7ed5743a133ea4cebb5c4a3c17c4aa91311360723b273e"
+    },
+    {
+      "symbol": "DDOG",
+      "name": "Datadog",
+      "url": "https://images.financialmodelingprep.com/symbol/DDOG.png",
+      "bytes": 6395,
+      "width": 100,
+      "height": 100,
+      "sha256": "8569335c137bb1023217c3769e02df3f647628f23d52c907b13050248f5a0d92"
+    },
+    {
+      "symbol": "DELL",
+      "name": "Dell",
+      "url": "https://images.financialmodelingprep.com/symbol/DELL.png",
+      "bytes": 1645,
+      "width": 100,
+      "height": 100,
+      "sha256": "9a38d44b95a2362c04a9d2b7db2d48dc3af086f5fd027240151c6257290c6f2a"
+    },
+    {
+      "symbol": "DJT",
+      "name": "Trump Media & Technology Group",
+      "url": "https://images.financialmodelingprep.com/symbol/DJT.png",
+      "bytes": 4335,
+      "width": 100,
+      "height": 100,
+      "sha256": "05031237caf1b797ccbe27e573edb6395dc199f58b019dc7c83860941f408b4a"
+    },
+    {
+      "symbol": "DOCN",
+      "name": "DigitalOcean",
+      "url": "https://images.financialmodelingprep.com/symbol/DOCN.png",
+      "bytes": 3847,
+      "width": 128,
+      "height": 128,
+      "sha256": "9ac4cc5da66530aca025194de5c24ec8087f6bb4be3f9ef1cb53d123a8e5c00d"
+    },
+    {
+      "symbol": "ELF",
+      "name": "e.l.f. Beauty",
+      "url": "https://images.financialmodelingprep.com/symbol/ELF.png",
+      "bytes": 8131,
+      "width": 250,
+      "height": 250,
+      "sha256": "01656e3c23c51bed52b47aa04d2d0572b725afaa710eeab8ff18465b8aaccc2d"
+    },
+    {
+      "symbol": "EWT",
+      "name": "iShares MSCI Taiwan Capped ETF",
+      "url": "https://images.financialmodelingprep.com/symbol/EWT.png",
+      "bytes": 2822,
+      "width": 100,
+      "height": 100,
+      "sha256": "1db47ec4a062686e252350d156c7ebd2d936622dd88592214e71ae964710ac34"
+    },
+    {
+      "symbol": "EWY",
+      "name": "iShares MSCI South Korea fund",
+      "url": "https://images.financialmodelingprep.com/symbol/EWY.png",
+      "bytes": 2822,
+      "width": 100,
+      "height": 100,
+      "sha256": "1db47ec4a062686e252350d156c7ebd2d936622dd88592214e71ae964710ac34"
+    },
+    {
+      "symbol": "F",
+      "name": "Ford Motor",
+      "url": "https://images.financialmodelingprep.com/symbol/F.png",
+      "bytes": 32734,
+      "width": 250,
+      "height": 250,
+      "sha256": "e2980349794323b1b5b96ca9356e303cf40b7e491aafbe584330170dac409667"
+    },
+    {
+      "symbol": "FICO",
+      "name": "Fair Isaac",
+      "url": "https://images.financialmodelingprep.com/symbol/FICO.png",
+      "bytes": 7848,
+      "width": 250,
+      "height": 250,
+      "sha256": "c96a66d9f3547e7d1452f6aaa300dba1a8e63a09814297051a9a92da4cbbf0b7"
+    },
+    {
+      "symbol": "FIG",
+      "name": "Figma",
+      "url": "https://images.financialmodelingprep.com/symbol/FIG.png",
+      "bytes": 2258,
+      "width": 100,
+      "height": 100,
+      "sha256": "71a91352436b8629838a287ce3a6c2f3390d6e7a6a75c62d0f583fd76985d02c"
+    },
+    {
+      "symbol": "FISV",
+      "name": "Fiserv",
+      "url": "https://images.financialmodelingprep.com/symbol/FISV.png",
+      "bytes": 9302,
+      "width": 250,
+      "height": 250,
+      "sha256": "26a3dbd78c5f824fa135dcac4f8bdbbe0133ef6ec0f44b997a6155747db289c9"
+    },
+    {
+      "symbol": "FIX",
+      "name": "Comfort Systems",
+      "url": "https://images.financialmodelingprep.com/symbol/FIX.png",
+      "bytes": 53293,
+      "width": 250,
+      "height": 250,
+      "sha256": "b9fb0ede2a046bf9cc1ba03a7f1a8ea165ef37cdbe25475ead2cf447608e4c7d"
+    },
+    {
+      "symbol": "FLNC",
+      "name": "Fluence Energy",
+      "url": "https://images.financialmodelingprep.com/symbol/FLNC.png",
+      "bytes": 2627,
+      "width": 128,
+      "height": 129,
+      "sha256": "7bd45a73d8155b99edb265ad3e6897f1004491a4d9a5cf8bf15a32faf0656d31"
+    },
+    {
+      "symbol": "FLY",
+      "name": "Firefly Aerospace",
+      "url": "https://fireflyspace.com/wp-content/uploads/2021/12/firefly-logo-small.svg",
+      "bytes": 21678,
+      "sha256": "c2c1fde1d0b42b2ff1b071fac79feb12b9d3161016435db87f15b47cc46f60e7"
+    },
+    {
+      "symbol": "FTNT",
+      "name": "Fortinet",
+      "url": "https://images.financialmodelingprep.com/symbol/FTNT.png",
+      "bytes": 5363,
+      "width": 250,
+      "height": 250,
+      "sha256": "81d2a48932a394ef7589bb3ce34376faab23f16f1a5e79a64f54685ba47e9b6e"
+    },
+    {
+      "symbol": "FUTU",
+      "name": "Futu Holdings",
+      "url": "https://images.financialmodelingprep.com/symbol/FUTU.png",
+      "bytes": 7361,
+      "width": 250,
+      "height": 250,
+      "sha256": "4cc3179742ba4c718312a315eaf215c27b8273ae2bd4b482bea7dfac8c511eb3"
+    },
+    {
+      "symbol": "GE",
+      "name": "General Electric",
+      "url": "https://images.financialmodelingprep.com/symbol/GE.png",
+      "bytes": 50756,
+      "width": 250,
+      "height": 250,
+      "sha256": "95188b797921032142bd64712d0e49c18140138cebfc66896ac878bda76ab022"
+    },
+    {
+      "symbol": "GEV",
+      "name": "GE Vernova",
+      "url": "https://images.financialmodelingprep.com/symbol/GEV.png",
+      "bytes": 9155,
+      "width": 100,
+      "height": 100,
+      "sha256": "09c27fa096cd240860891056de221ace634838475eea11b8269154564dcdc139"
+    },
+    {
+      "symbol": "GLD",
+      "name": "SPDR Gold Trust",
+      "url": "https://images.financialmodelingprep.com/symbol/GLD.png",
+      "bytes": 22737,
+      "width": 250,
+      "height": 250,
+      "sha256": "d58b0e4c4f2580bf2dccdb14aa5c7985527fbd59534a5f6a38def93528f3eb25"
+    },
+    {
+      "symbol": "GLW",
+      "name": "Corning",
+      "url": "https://images.financialmodelingprep.com/symbol/GLW.png",
+      "bytes": 9276,
+      "width": 250,
+      "height": 250,
+      "sha256": "ab9770d02598a7f3619ac6d8a7a6b3762ead1bd51ebb3f21a146f9bd1d7c50a9"
+    },
+    {
+      "symbol": "GLXY",
+      "name": "Galaxy Digital Inc.",
+      "url": "https://images.financialmodelingprep.com/symbol/GLXY.png",
+      "bytes": 7046,
+      "width": 100,
+      "height": 100,
+      "sha256": "b2b246dcd68f03541ec7ca420ddbeff970b10d451d5058de7fd14aa6c2fc8f1b"
+    },
+    {
+      "symbol": "GME",
+      "name": "GameStop",
+      "url": "https://images.financialmodelingprep.com/symbol/GME.png",
+      "bytes": 10569,
+      "width": 250,
+      "height": 250,
+      "sha256": "990f9da8969274640407783c2f68bc366114cc693f039f3c36b55e87997f1a4e"
+    },
+    {
+      "symbol": "GOOGL",
+      "name": "Alphabet Class A",
+      "url": "https://images.financialmodelingprep.com/symbol/GOOGL.png",
+      "bytes": 12773,
+      "width": 250,
+      "height": 250,
+      "sha256": "bd3b7de49841562702c9b4f18f221a2c318979e1380f1658064600081021e4fe"
+    },
+    {
+      "symbol": "HII",
+      "name": "Huntington Ingalls",
+      "url": "https://images.financialmodelingprep.com/symbol/HII.png",
+      "bytes": 10076,
+      "width": 250,
+      "height": 250,
+      "sha256": "f95926a78cf92f5cf5c39a1518f55608b0ac6b971f31116a9341a004a76a1227"
+    },
+    {
+      "symbol": "HIMS",
+      "name": "Hims & Hers Health",
+      "url": "https://images.financialmodelingprep.com/symbol/HIMS.png",
+      "bytes": 8046,
+      "width": 250,
+      "height": 250,
+      "sha256": "2661cdf133a00d260462b3bb8d6b0c2aadd3a226e204502f6ab6892f8d0723fa"
+    },
+    {
+      "symbol": "HPE",
+      "name": "HP Enterprise",
+      "url": "https://images.financialmodelingprep.com/symbol/HPE.png",
+      "bytes": 671,
+      "width": 250,
+      "height": 250,
+      "sha256": "fd27c19464f594a4c8f41fff59bf0e361d0b26894b8533ae2fabf73d1d0e4796"
+    },
+    {
+      "symbol": "HWM",
+      "name": "Howmet Aerospace",
+      "url": "https://images.financialmodelingprep.com/symbol/HWM.png",
+      "bytes": 15602,
+      "width": 250,
+      "height": 250,
+      "sha256": "d0e4daa0222ec3cde4275cc744af9e5f003350c9f0cfac9178f2b3a74d80e835"
+    },
+    {
+      "symbol": "IBM",
+      "name": "IBM",
+      "url": "https://images.financialmodelingprep.com/symbol/IBM.png",
+      "bytes": 2217,
+      "width": 128,
+      "height": 128,
+      "sha256": "0c00f631f778b9945b7599e1b0174f0346bdd622bc5979bac50c8b996c8cf88d"
+    },
+    {
+      "symbol": "IBRX",
+      "name": "ImmunityBio,",
+      "url": "https://images.financialmodelingprep.com/symbol/IBRX.png",
+      "bytes": 16254,
+      "width": 250,
+      "height": 250,
+      "sha256": "e572a7131c021df645a5d11ac3b84cd233e1a0c53dfaa541c2d89e9ec79d1f57"
+    },
+    {
+      "symbol": "INDA",
+      "name": "iShares MSCI India ETF",
+      "url": "https://images.financialmodelingprep.com/symbol/INDA.png",
+      "bytes": 2822,
+      "width": 100,
+      "height": 100,
+      "sha256": "1db47ec4a062686e252350d156c7ebd2d936622dd88592214e71ae964710ac34"
+    },
+    {
+      "symbol": "INFQ",
+      "name": "Infleqtion",
+      "url": "https://images.financialmodelingprep.com/symbol/INFQ.png",
+      "bytes": 3612,
+      "width": 100,
+      "height": 100,
+      "sha256": "b7d3841feeb2a5164b903b56181fbaf489d4a293e6fa93003f99499b5b09ae8e"
+    },
+    {
+      "symbol": "INOD",
+      "name": "Innodata",
+      "url": "https://images.financialmodelingprep.com/symbol/INOD.png",
+      "bytes": 15452,
+      "width": 250,
+      "height": 250,
+      "sha256": "2970c3da3fd67fd12046ce3c92e6a5a46e2d0f360e423cfd59fa0ba88a51c70d"
+    },
+    {
+      "symbol": "INTC",
+      "name": "Intel",
+      "url": "https://images.financialmodelingprep.com/symbol/INTC.png",
+      "bytes": 1240,
+      "width": 100,
+      "height": 100,
+      "sha256": "fed34e20fa27940daa8aabdf3da83d87b4ec1bc73956f5fd773d9acb72d12d7d"
+    },
+    {
+      "symbol": "INTU",
+      "name": "Intuit",
+      "url": "https://images.financialmodelingprep.com/symbol/INTU.png",
+      "bytes": 15207,
+      "width": 250,
+      "height": 250,
+      "sha256": "85e6d34e5ed78eabfc79f2508ba5214eff8221bf76579bd0d0e6581b4766fb9c"
+    },
+    {
+      "symbol": "IONQ",
+      "name": "IonQ",
+      "url": "https://images.financialmodelingprep.com/symbol/IONQ.png",
+      "bytes": 15828,
+      "width": 250,
+      "height": 250,
+      "sha256": "7b96d3755044185c4a8ca3ef015cefe5f23f47e5d39303d40b713b99d597214c"
+    },
+    {
+      "symbol": "IREN",
+      "name": "IREN Limited",
+      "url": "https://images.financialmodelingprep.com/symbol/IREN.png",
+      "bytes": 11641,
+      "width": 250,
+      "height": 250,
+      "sha256": "6173e731e2755cd6ddd973baa962edc095d20a3597d7b98578558bb2f6edc6f9"
+    },
+    {
+      "symbol": "JBL",
+      "name": "Jabil Inc.",
+      "url": "https://images.financialmodelingprep.com/symbol/JBL.png",
+      "bytes": 4965,
+      "width": 250,
+      "height": 250,
+      "sha256": "6ae9b0f43ff743dcf10cc6f0093ac082c70115cb89b222a7d53a6695cd95b838"
+    },
+    {
+      "symbol": "JNJ",
+      "name": "Johnson & Johnson",
+      "url": "https://images.financialmodelingprep.com/symbol/JNJ.png",
+      "bytes": 30876,
+      "width": 250,
+      "height": 250,
+      "sha256": "fcec0737190e8ba4f725075149ab35a7f16ab74ac13586fd7b164228beb6f1af"
+    },
+    {
+      "symbol": "JOBY",
+      "name": "Joby Aviation",
+      "url": "https://images.financialmodelingprep.com/symbol/JOBY.png",
+      "bytes": 4497,
+      "width": 128,
+      "height": 128,
+      "sha256": "2a93f398738bc848fbf9c5594ab5eeacc5343663a90cae0f03726d2e3f43bd33"
+    },
+    {
+      "symbol": "KLAC",
+      "name": "KLA",
+      "url": "https://images.financialmodelingprep.com/symbol/KLAC.png",
+      "bytes": 36695,
+      "width": 250,
+      "height": 250,
+      "sha256": "3a7e834aad08546a969d17854d2045ff8a8e40d52002d527933ff6b2370bed0b"
+    },
+    {
+      "symbol": "KSS",
+      "name": "Kohls Corporation",
+      "url": "https://images.financialmodelingprep.com/symbol/KSS.png",
+      "bytes": 5977,
+      "width": 250,
+      "height": 250,
+      "sha256": "914db234dfea2d96d18586495baea80b8d6136a0296124521d0c173462b5c676"
+    },
+    {
+      "symbol": "KTOS",
+      "name": "Kratos Defense & Security Solutions",
+      "url": "https://images.financialmodelingprep.com/symbol/KTOS.png",
+      "bytes": 5719,
+      "width": 128,
+      "height": 128,
+      "sha256": "d3a5b740c6a42df5ccd624820cd753247f65bba9cc4b4877c5d278e59fc5beca"
+    },
+    {
+      "symbol": "LHX",
+      "name": "L3Harris",
+      "url": "https://images.financialmodelingprep.com/symbol/LHX.png",
+      "bytes": 7090,
+      "width": 128,
+      "height": 128,
+      "sha256": "5710bcd40fd21afbe5b6454c0fc25e6a235a722d51e7433a07363fcfb71a0b24"
+    },
+    {
+      "symbol": "LITE",
+      "name": "Lumentum",
+      "url": "https://images.financialmodelingprep.com/symbol/LITE.png",
+      "bytes": 9918,
+      "width": 250,
+      "height": 250,
+      "sha256": "58499df1eecc687d19cf9f74ef8f49e560acdfc70a21645e36f813f657451bd0"
+    },
+    {
+      "symbol": "LLY",
+      "name": "Eli Lilly",
+      "url": "https://images.financialmodelingprep.com/symbol/LLY.png",
+      "bytes": 14115,
+      "width": 250,
+      "height": 250,
+      "sha256": "e51670387d685b1e5a01ebf54fc43b6dbabf04206787bfa9e54bd4048760590f"
+    },
+    {
+      "symbol": "LMT",
+      "name": "Lockheed",
+      "url": "https://images.financialmodelingprep.com/symbol/LMT.png",
+      "bytes": 9127,
+      "width": 250,
+      "height": 250,
+      "sha256": "4d28a29af0d15d46ef4da0855e899bfc57ac43cc1d338fea30e29809fc95c4e7"
+    },
+    {
+      "symbol": "LRCX",
+      "name": "Lam Research Corp",
+      "url": "https://images.financialmodelingprep.com/symbol/LRCX.png",
+      "bytes": 22984,
+      "width": 250,
+      "height": 250,
+      "sha256": "08d7dfb395a5bba7f75ac10f6aa58808e43f6c3ff04530576d2f76436020ba75"
+    },
+    {
+      "symbol": "LULU",
+      "name": "Lululemon",
+      "url": "https://images.financialmodelingprep.com/symbol/LULU.png",
+      "bytes": 19166,
+      "width": 250,
+      "height": 250,
+      "sha256": "3ac8b09ce259e3d918c809ea5004fe8b71600c8aa23a1eab97c63ee0e2ddf4e2"
+    },
+    {
+      "symbol": "LUNR",
+      "name": "Intuitive Machines",
+      "url": "https://images.financialmodelingprep.com/symbol/LUNR.png",
+      "bytes": 3260,
+      "width": 100,
+      "height": 100,
+      "sha256": "92dfec9297e9616951390289c5c3a611115bf67dcaf3e9491a9e77b6b94b444d"
+    },
+    {
+      "symbol": "MDB",
+      "name": "MongoDB",
+      "url": "https://images.financialmodelingprep.com/symbol/MDB.png",
+      "bytes": 14427,
+      "width": 250,
+      "height": 250,
+      "sha256": "2502efbee11bd201a563c5a20c4b13302e255ea62998918d2e4800fb286754e5"
+    },
+    {
+      "symbol": "META",
+      "name": "Meta Platforms",
+      "url": "https://images.financialmodelingprep.com/symbol/META.png",
+      "bytes": 16236,
+      "width": 200,
+      "height": 200,
+      "sha256": "c48757bf1cc853fcf07dd247df5cc8edc2699853d09874e9cf6cfec6702c15c5"
+    },
+    {
+      "symbol": "MOD",
+      "name": "Modine",
+      "url": "https://images.financialmodelingprep.com/symbol/MOD.png",
+      "bytes": 26243,
+      "width": 250,
+      "height": 250,
+      "sha256": "19686888dc366cfa9aa683046e650fc19c413470c900b0d9f2494afb31d53ff4"
+    },
+    {
+      "symbol": "MPWR",
+      "name": "Monolithic Power Systems",
+      "url": "https://images.financialmodelingprep.com/symbol/MPWR.png",
+      "bytes": 1446,
+      "width": 128,
+      "height": 37,
+      "sha256": "009c8b551c4fbe49365874be760429b0ee3208717e7346c2dcc9174feda9108d"
+    },
+    {
+      "symbol": "MRNA",
+      "name": "Moderna",
+      "url": "https://images.financialmodelingprep.com/symbol/MRNA.png",
+      "bytes": 10252,
+      "width": 250,
+      "height": 250,
+      "sha256": "57f9b4ece9db5aaa51d965c26aff5a21504062017f06e685f322597bf9a878b2"
+    },
+    {
+      "symbol": "MRVL",
+      "name": "Marvell Technology",
+      "url": "https://images.financialmodelingprep.com/symbol/MRVL.png",
+      "bytes": 3197,
+      "width": 128,
+      "height": 128,
+      "sha256": "c6f5463cceacf32245f2d6488edd22c20567a72fd209aecfe9a5ea4b53edc26d"
+    },
+    {
+      "symbol": "MSFT",
+      "name": "Microsoft",
+      "url": "https://images.financialmodelingprep.com/symbol/MSFT.png",
+      "bytes": 938,
+      "width": 250,
+      "height": 250,
+      "sha256": "5464732326598baca91f5aaa9b19ca9b8ced1655465a41a54f3424485be5e33a"
+    },
+    {
+      "symbol": "MSTR",
+      "name": "Strategy Inc.",
+      "url": "https://images.financialmodelingprep.com/symbol/MSTR.png",
+      "bytes": 13842,
+      "width": 250,
+      "height": 250,
+      "sha256": "0737730840238e228ec100e74d965fe2a3e025ec621ec5f9e0f0a04486ab22e2"
+    },
+    {
+      "symbol": "MTSI",
+      "name": "MACOM",
+      "url": "https://images.financialmodelingprep.com/symbol/MTSI.png",
+      "bytes": 21749,
+      "width": 250,
+      "height": 250,
+      "sha256": "c56481d0f12f048f64b7136bbac4928f02c7a39fe27a744f66993df8d4c033b2"
+    },
+    {
+      "symbol": "MU",
+      "name": "Micron Technology",
+      "url": "https://images.financialmodelingprep.com/symbol/MU.png",
+      "bytes": 10893,
+      "width": 200,
+      "height": 200,
+      "sha256": "c4c6752eef5eeef3392c61484b4e971eb95c4a3876fe5ce416a68d7ab9d43985"
+    },
+    {
+      "symbol": "MXL",
+      "name": "MaxLinear",
+      "url": "https://images.financialmodelingprep.com/symbol/MXL.png",
+      "bytes": 3042,
+      "width": 144,
+      "height": 144,
+      "sha256": "b46ca05253d5fe8abd405bb67f64179d1f4b99c7df33f52a362e25c695995a62"
+    },
+    {
+      "symbol": "NAVN",
+      "name": "Navan",
+      "url": "https://images.financialmodelingprep.com/symbol/NAVN.png",
+      "bytes": 4028,
+      "width": 100,
+      "height": 100,
+      "sha256": "deab9025d61eefc5e625bb145a4f75cf311dff318207f5297e4b57b7f60d4bd9"
+    },
+    {
+      "symbol": "NBIS",
+      "name": "Nebius Group",
+      "url": "https://images.financialmodelingprep.com/symbol/NBIS.png",
+      "bytes": 1490,
+      "width": 100,
+      "height": 100,
+      "sha256": "c2d8b049c17a2511cf288a97ebe3763de35843970d61ba657df8cdb89c1832e1"
+    },
+    {
+      "symbol": "NET",
+      "name": "Cloudflare, Inc. Class A common stock",
+      "url": "https://images.financialmodelingprep.com/symbol/NET.png",
+      "bytes": 1986,
+      "width": 100,
+      "height": 100,
+      "sha256": "567cdaf8e2e36d1aaf15837e8e3458c88c334d1473f1a9dbebb60f5e1ea2dc4f"
+    },
+    {
+      "symbol": "NFLX",
+      "name": "Netflix",
+      "url": "https://images.financialmodelingprep.com/symbol/NFLX.png",
+      "bytes": 5173,
+      "width": 250,
+      "height": 250,
+      "sha256": "351d461bc92473fd2b16ceb4032ba82e5b159c91404c48070d29aa4325898355"
+    },
+    {
+      "symbol": "NNE",
+      "name": "Nano Nuclear Energy",
+      "url": "https://images.financialmodelingprep.com/symbol/NNE.png",
+      "bytes": 7803,
+      "width": 100,
+      "height": 100,
+      "sha256": "3aa53886855967ef9a159913f098b68400d45568d91443fa9964fb20c9ca6c26"
+    },
+    {
+      "symbol": "NOW",
+      "name": "ServiceNow",
+      "url": "https://images.financialmodelingprep.com/symbol/NOW.png",
+      "bytes": 13055,
+      "width": 250,
+      "height": 250,
+      "sha256": "37685add2efcbb11e9e9102e781ba89e562a920a664cc45a4c48c65385c1e2b4"
+    },
+    {
+      "symbol": "NU",
+      "name": "Nu",
+      "url": "https://images.financialmodelingprep.com/symbol/NU.png",
+      "bytes": 4179,
+      "width": 128,
+      "height": 128,
+      "sha256": "e55f451c2ac914984263f6eceee08f6beeab74bb912fe52ed60f8cf29674a0e1"
+    },
+    {
+      "symbol": "NVDA",
+      "name": "NVIDIA",
+      "url": "https://images.financialmodelingprep.com/symbol/NVDA.png",
+      "bytes": 11180,
+      "width": 250,
+      "height": 250,
+      "sha256": "65adfc123c82dd816d8bebeaded5d0bdd72a4a799d1c0e23d310eaf6e2c457e6"
+    },
+    {
+      "symbol": "NVTS",
+      "name": "Navitas Semiconductor",
+      "url": "https://images.financialmodelingprep.com/symbol/NVTS.png",
+      "bytes": 18155,
+      "width": 144,
+      "height": 144,
+      "sha256": "8496959bcd47ef4d8ee71864b60e1be93f19f3036010069452cfb69931a4e88d"
+    },
+    {
+      "symbol": "OKLO",
+      "name": "Oklo",
+      "url": "https://images.financialmodelingprep.com/symbol/OKLO.png",
+      "bytes": 2347,
+      "width": 100,
+      "height": 100,
+      "sha256": "25c44e40aa1366eaabd2eed2876fd395d16ff4e50c46cb84e317d6aa3652d1dd"
+    },
+    {
+      "symbol": "ON",
+      "name": "ON Semiconductor",
+      "url": "https://images.financialmodelingprep.com/symbol/ON.png",
+      "bytes": 2913,
+      "width": 100,
+      "height": 100,
+      "sha256": "f8ec3c1ce23b9afa76fb1d47dfdf344f70cf5d8ceace745a946cb93403b14026"
+    },
+    {
+      "symbol": "ONTO",
+      "name": "Onto Innovation",
+      "url": "https://images.financialmodelingprep.com/symbol/ONTO.png",
+      "bytes": 1681,
+      "width": 100,
+      "height": 100,
+      "sha256": "dadd6c0824caa34740172477f87878b2dd4768732f62e1ecdf351ad21de906d3"
+    },
+    {
+      "symbol": "ORCL",
+      "name": "Oracle",
+      "url": "https://images.financialmodelingprep.com/symbol/ORCL.png",
+      "bytes": 8964,
+      "width": 250,
+      "height": 250,
+      "sha256": "79bb1cdf0dc02acc962bff80867e4d4ce6d6a035cff1180270a71472fece99f0"
+    },
+    {
+      "symbol": "OUST",
+      "name": "Ouster",
+      "url": "https://images.financialmodelingprep.com/symbol/OUST.png",
+      "bytes": 3610,
+      "width": 120,
+      "height": 120,
+      "sha256": "ada8e4d1cfc4ed4699c864e40a07a4e8355d02220b81dfeb3d57fddbf6fc00aa"
+    },
+    {
+      "symbol": "P",
+      "name": "Everpure",
+      "url": "https://www.everpuredata.com/",
+      "bytes": 674,
+      "sha256": "f22b1a7b8cf3f52766bcf52434c485503e1167609aeda8c40173d2b0b2b8c68c"
+    },
+    {
+      "symbol": "PANW",
+      "name": "Palo Alto Networks",
+      "url": "https://images.financialmodelingprep.com/symbol/PANW.png",
+      "bytes": 14896,
+      "width": 250,
+      "height": 250,
+      "sha256": "cef4b0f5b4260c13862ada016f5298570e20346e9d58f1778669709feb049f7f"
+    },
+    {
+      "symbol": "PATH",
+      "name": "UiPath",
+      "url": "https://images.financialmodelingprep.com/symbol/PATH.png",
+      "bytes": 2643,
+      "width": 128,
+      "height": 128,
+      "sha256": "6cf1c40d8e65c08aa3cd5bdfe58bb806accddc916d2eea84913876cf88df2f2c"
+    },
+    {
+      "symbol": "PENG",
+      "name": "Penguin Solutions",
+      "url": "https://cdn.prod.website-files.com/6764579f0a24e5a0083f25bb/6764a28f72a29d4771c2abc8_favicon.png",
+      "bytes": 18919,
+      "width": 256,
+      "height": 256,
+      "sha256": "c534090e33b215e69b18387e3165805bfd5a8e69c22a53a5171839fd67ae534d",
+      "sourcePage": "https://www.penguinsolutions.com/en-us"
+    },
+    {
+      "symbol": "PFE",
+      "name": "Pfizer",
+      "url": "https://images.financialmodelingprep.com/symbol/PFE.png",
+      "bytes": 21135,
+      "width": 250,
+      "height": 250,
+      "sha256": "9cddfdf72e5d9eb617674bd5dd0c958b651a9bc03ba2c9208b45c2dc4be55ccd"
+    },
+    {
+      "symbol": "PL",
+      "name": "Planet Labs",
+      "url": "https://images.financialmodelingprep.com/symbol/PL.png",
+      "bytes": 4439,
+      "width": 144,
+      "height": 144,
+      "sha256": "d6eda4df702c43e21b7ade5bb721927ab9f7b590d7331b9f8f1d81a05ab311dc"
+    },
+    {
+      "symbol": "PLTR",
+      "name": "Palantir Technologies",
+      "url": "https://images.financialmodelingprep.com/symbol/PLTR.png",
+      "bytes": 2318,
+      "width": 100,
+      "height": 100,
+      "sha256": "b33a15c8379a89328ea6a77282bbef4c65a3c419d69695278d82071fb398e236"
+    },
+    {
+      "symbol": "POET",
+      "name": "POET Technologies",
+      "url": "https://images.financialmodelingprep.com/symbol/POET.png",
+      "bytes": 2829,
+      "width": 144,
+      "height": 144,
+      "sha256": "488f9a019a5c5f1b130b0574d6b3c9b5615c6dc83083dc5ec0788af412bfc2fb"
+    },
+    {
+      "symbol": "POWL",
+      "name": "Powell Industries",
+      "url": "https://images.financialmodelingprep.com/symbol/POWL.png",
+      "bytes": 2189,
+      "width": 144,
+      "height": 144,
+      "sha256": "f6cab2326138599870f13b498d0c0bf92876043e53539e67965aac859051cdfc"
+    },
+    {
+      "symbol": "PR",
+      "name": "Permian Resources",
+      "url": "https://images.financialmodelingprep.com/symbol/PR.png",
+      "bytes": 21021,
+      "width": 250,
+      "height": 250,
+      "sha256": "152321f9484e2754d37e3a800bf12e63bfd8f88f183389f37dd0ff9f804286cc"
+    },
+    {
+      "symbol": "PWR",
+      "name": "Quanta",
+      "url": "https://images.financialmodelingprep.com/symbol/PWR.png",
+      "bytes": 6811,
+      "width": 128,
+      "height": 128,
+      "sha256": "d70f481ea40a8aa39780c3b8729cdad5f6774a064512541ac779a2453c9e1612"
+    },
+    {
+      "symbol": "QBTS",
+      "name": "D-Wave Quantum Inc. Common Stock",
+      "url": "https://images.financialmodelingprep.com/symbol/QBTS.png",
+      "bytes": 2010,
+      "width": 100,
+      "height": 100,
+      "sha256": "e725218794030d71398ccfa8776a8cec4859bfc05bbe85cc9553a2ae6a3be941"
+    },
+    {
+      "symbol": "QCOM",
+      "name": "Qualcomm",
+      "url": "https://images.financialmodelingprep.com/symbol/QCOM.png",
+      "bytes": 8784,
+      "width": 200,
+      "height": 200,
+      "sha256": "3b097b1488401cb2848e4cda192043098f14e37504a5e5f661516bb2e789d2a2"
+    },
+    {
+      "symbol": "QQQ",
+      "name": "Invesco QQQ",
+      "url": "https://images.financialmodelingprep.com/symbol/QQQ.png",
+      "bytes": 11683,
+      "width": 250,
+      "height": 250,
+      "sha256": "d8525b3f7d8cc9c921e8e4cceb89bd0d2d07e860717f83bae11d4c6852b105d8"
+    },
+    {
+      "symbol": "QUBT",
+      "name": "Quantum Computing",
+      "url": "https://images.financialmodelingprep.com/symbol/QUBT.png",
+      "bytes": 8569,
+      "width": 250,
+      "height": 250,
+      "sha256": "b16a3ea7d078ead3157837d2983ed6d12b945655ba2b9a8f7158a347990d5bb5"
+    },
+    {
+      "symbol": "RBLX",
+      "name": "Roblox",
+      "url": "https://images.financialmodelingprep.com/symbol/RBLX.png",
+      "bytes": 8511,
+      "width": 250,
+      "height": 250,
+      "sha256": "e96501ca23b7c61bd442dbf5d73bfdfacf43033d937eeb9ee8adbd5e8c7da553"
+    },
+    {
+      "symbol": "RCAT",
+      "name": "Red Cat",
+      "url": "https://images.financialmodelingprep.com/symbol/RCAT.png",
+      "bytes": 6774,
+      "width": 200,
+      "height": 200,
+      "sha256": "b3ce7c8bfd0240dd3f1cc7c7698da722d6d6213a8f8a14023dd85a4c29523adc"
+    },
+    {
+      "symbol": "RDDT",
+      "name": "Reddit",
+      "url": "https://images.financialmodelingprep.com/symbol/RDDT.png",
+      "bytes": 3334,
+      "width": 100,
+      "height": 100,
+      "sha256": "5377741e492706bc49bc78a61589340afb6d0793bdf28f71930d12ab0c838268"
+    },
+    {
+      "symbol": "RDW",
+      "name": "Redwire",
+      "url": "https://images.financialmodelingprep.com/symbol/RDW.png",
+      "bytes": 19486,
+      "width": 250,
+      "height": 250,
+      "sha256": "0befb77b7ad75de1cda8723ccdd625f9453fe8cda609ea1cbccf720283033242"
+    },
+    {
+      "symbol": "RGTI",
+      "name": "Rigetti Computing",
+      "url": "https://images.financialmodelingprep.com/symbol/RGTI.png",
+      "bytes": 5471,
+      "width": 250,
+      "height": 250,
+      "sha256": "cbcd7b2125e9d2bf49cb8a37096750ee9ad9e6455f23321ba1472aceb82a68dc"
+    },
+    {
+      "symbol": "RIVN",
+      "name": "Rivian Automotive",
+      "url": "https://images.financialmodelingprep.com/symbol/RIVN.png",
+      "bytes": 13465,
+      "width": 250,
+      "height": 250,
+      "sha256": "bc15a18afdede7b5c216e2f58e974fdcbaaac68eb1fc9465693a954a8c478afe"
+    },
+    {
+      "symbol": "RKLB",
+      "name": "Rocket Lab Corporation",
+      "url": "https://images.financialmodelingprep.com/symbol/RKLB.png",
+      "bytes": 5313,
+      "width": 250,
+      "height": 250,
+      "sha256": "8b314c7254d4ae0de72d6c45bf8914c99a8dec601ce7c057025d2311922061a1"
+    },
+    {
+      "symbol": "RUN",
+      "name": "Sunrun",
+      "url": "https://images.financialmodelingprep.com/symbol/RUN.png",
+      "bytes": 13685,
+      "width": 250,
+      "height": 250,
+      "sha256": "532203d7a73067c49a9441f7a039a4d6a7dae697517161fe6571e447d1fe12f1"
+    },
+    {
+      "symbol": "SATS",
+      "name": "EchoStar",
+      "url": "https://images.financialmodelingprep.com/symbol/SATS.png",
+      "bytes": 8430,
+      "width": 100,
+      "height": 100,
+      "sha256": "c753b3fbce2212494d82f3d72c869e98c075f4adb5dfa54ab8d742d9d6b0c2a0"
+    },
+    {
+      "symbol": "SCHD",
+      "name": "Schwab US Dividend Equity ETF",
+      "url": "https://images.financialmodelingprep.com/symbol/SCHD.png",
+      "bytes": 20894,
+      "width": 250,
+      "height": 250,
+      "sha256": "742fa49f74b7e7e0f5ad01c2ebf16abf1be166127996e8ea33a8f266084a3c6f"
+    },
+    {
+      "symbol": "SGOV",
+      "name": "iShares 0-3 Month Treasury Bond",
+      "url": "https://images.financialmodelingprep.com/symbol/SGOV.png",
+      "bytes": 2199,
+      "width": 144,
+      "height": 144,
+      "sha256": "192f33fd61bfb7e83c82371c74802b6990ee6c05910afe5262f88e3bd9da2bc7"
+    },
+    {
+      "symbol": "SHOP",
+      "name": "Shopify",
+      "url": "https://images.financialmodelingprep.com/symbol/SHOP.png",
+      "bytes": 17639,
+      "width": 250,
+      "height": 250,
+      "sha256": "9d23c906679a8e9489a3ee6d9dbbff7efc1e14ef4511d53e749e122a9cb60cd8"
+    },
+    {
+      "symbol": "SHY",
+      "name": "iShares 1-3 Year Treasury Bond ETF",
+      "url": "https://images.financialmodelingprep.com/symbol/SHY.png",
+      "bytes": 547,
+      "width": 144,
+      "height": 144,
+      "sha256": "e2e412bfa41dde6f425bf4e428f3aa52f4b7d4e5a8ceab052dd4d8fc3f2919ff"
+    },
+    {
+      "symbol": "SIMO",
+      "name": "Silicon Motion",
+      "url": "https://images.financialmodelingprep.com/symbol/SIMO.png",
+      "bytes": 43169,
+      "width": 250,
+      "height": 250,
+      "sha256": "38d492f33e0b70d30eab7573d79be088898b231953b06893386caee4ff046cd0"
+    },
+    {
+      "symbol": "SKHY",
+      "name": "SK hynix Inc. American Depositary Shares",
+      "url": "https://images.financialmodelingprep.com/symbol/SKHY.png",
+      "bytes": 10300,
+      "width": 100,
+      "height": 100,
+      "sha256": "943239f1aa19431f45946c581dcfd81aa1782f6296710d382e36caf41c033693"
+    },
+    {
+      "symbol": "SLS",
+      "name": "SELLAS Life Sciences",
+      "url": "https://images.financialmodelingprep.com/symbol/SLS.png",
+      "bytes": 3865,
+      "width": 128,
+      "height": 129,
+      "sha256": "fd93ce1b1159ef6bc1158560aeda22fd7d1c15fc847c8f7c4714a07f3ccf39f1"
+    },
+    {
+      "symbol": "SLV",
+      "name": "iShares Silver Trust",
+      "url": "https://images.financialmodelingprep.com/symbol/SLV.png",
+      "bytes": 547,
+      "width": 144,
+      "height": 144,
+      "sha256": "e2e412bfa41dde6f425bf4e428f3aa52f4b7d4e5a8ceab052dd4d8fc3f2919ff"
+    },
+    {
+      "symbol": "SMCI",
+      "name": "Super Micro Computer",
+      "url": "https://images.financialmodelingprep.com/symbol/SMCI.png",
+      "bytes": 7329,
+      "width": 128,
+      "height": 128,
+      "sha256": "8193770c6837c36dc6064388122b2d80e626a699f7637362445904a390c537bd"
+    },
+    {
+      "symbol": "SMH",
+      "name": "VanEck Semiconductor ETF",
+      "url": "https://images.financialmodelingprep.com/symbol/SMH.png",
+      "bytes": 6857,
+      "width": 250,
+      "height": 250,
+      "sha256": "c36010641ea25a3a74e7d86e41c9e80bc713081fe039ae555a8719acc13aaf56"
+    },
+    {
+      "symbol": "SMR",
+      "name": "NuScale Power",
+      "url": "https://images.financialmodelingprep.com/symbol/SMR.png",
+      "bytes": 2818,
+      "width": 100,
+      "height": 100,
+      "sha256": "4be5ed0815619f42e7dbf8f021e6477e1714ea1fbb745d11752dd1132a18e560"
+    },
+    {
+      "symbol": "SNAP",
+      "name": "Snap",
+      "url": "https://images.financialmodelingprep.com/symbol/SNAP.png",
+      "bytes": 17523,
+      "width": 250,
+      "height": 250,
+      "sha256": "fe37e1f3b10bb2e4d723b4d17c3b85baa1e45a3b33fab3886677bbe069d1ef20"
+    },
+    {
+      "symbol": "SNDK",
+      "name": "Sandisk Corporation",
+      "url": "https://images.financialmodelingprep.com/symbol/SNDK.png",
+      "bytes": 21402,
+      "width": 1534,
+      "height": 1225,
+      "sha256": "726daaa07485d4b0c475adcab4c4fc0645c3c68136951c783c05afce3a5de8e8"
+    },
+    {
+      "symbol": "SNOW",
+      "name": "Snowflake",
+      "url": "https://images.financialmodelingprep.com/symbol/SNOW.png",
+      "bytes": 13316,
+      "width": 200,
+      "height": 200,
+      "sha256": "bd46063b61d215127e12d7b9ed1777c965f0cb0e4ec9bbf387acf7c54ec43b7c"
+    },
+    {
+      "symbol": "SOFI",
+      "name": "SoFi Technologies",
+      "url": "https://images.financialmodelingprep.com/symbol/SOFI.png",
+      "bytes": 22674,
+      "width": 250,
+      "height": 250,
+      "sha256": "c6117c2961041554ddfe1e25d2fe8c31454629dc6d6ae1ac57c6cccfe555d3fe"
+    },
+    {
+      "symbol": "SOUN",
+      "name": "SoundHound AI",
+      "url": "https://images.financialmodelingprep.com/symbol/SOUN.png",
+      "bytes": 59916,
+      "width": 250,
+      "height": 250,
+      "sha256": "a0fceb80051db4b0decbc023877b1606318d1259602c1062a2ae5e751012195d"
+    },
+    {
+      "symbol": "SOXX",
+      "name": "iShares Semiconductor ETF",
+      "url": "https://images.financialmodelingprep.com/symbol/SOXX.png",
+      "bytes": 3159,
+      "width": 144,
+      "height": 144,
+      "sha256": "7b6f79f53559a0a87a8ff444c09ff0cd91868c12055a7db3a343b8088feea589"
+    },
+    {
+      "symbol": "SPCX",
+      "name": "Space Exploration Technologies Corp. Class A Common Stock",
+      "url": "https://images.financialmodelingprep.com/symbol/SPCX.png",
+      "bytes": 2562,
+      "width": 100,
+      "height": 100,
+      "sha256": "0683fd320c580c782f6965d046e8f7d74c55ca387845416a68be77886c418b9a"
+    },
+    {
+      "symbol": "SPMO",
+      "name": "Invesco S&P 500 Momentum ETF",
+      "url": "https://images.financialmodelingprep.com/symbol/SPMO.png",
+      "bytes": 2687,
+      "width": 144,
+      "height": 144,
+      "sha256": "aeb53c751377591ff667de69d4a8a434fe589b6d8355bb4232bd89381ba16d0a"
+    },
+    {
+      "symbol": "SPY",
+      "name": "SPDR S&P 500 ETF Trust",
+      "url": "https://images.financialmodelingprep.com/symbol/SPY.png",
+      "bytes": 7684,
+      "width": 250,
+      "height": 250,
+      "sha256": "ed83f3c088d3df794c68fd4ed6fcc4d5daf240b906edd88251406479b1163ef4"
+    },
+    {
+      "symbol": "TE",
+      "name": "T1 Energy",
+      "url": "https://images.financialmodelingprep.com/symbol/TE.png",
+      "bytes": 1906,
+      "width": 256,
+      "height": 256,
+      "sha256": "67e14744a2ef0615c044a383f6f071fc827fd54b0dd328c1087b44160fa92082"
+    },
+    {
+      "symbol": "TEAM",
+      "name": "Atlassian Corporation",
+      "url": "https://images.financialmodelingprep.com/symbol/TEAM.png",
+      "bytes": 13659,
+      "width": 250,
+      "height": 250,
+      "sha256": "8788f8546ba138b98c63f4d75a45ab56e77917e04ab7d1bab1fe66fbeb8a34bf"
+    },
+    {
+      "symbol": "TEM",
+      "name": "Tempus AI",
+      "url": "https://images.financialmodelingprep.com/symbol/TEM.png",
+      "bytes": 2675,
+      "width": 100,
+      "height": 100,
+      "sha256": "ef071914d037291515166441da3f2f3bdd50af67c77396c83255cb9b61545c39"
+    },
+    {
+      "symbol": "TER",
+      "name": "Teradyne",
+      "url": "https://images.financialmodelingprep.com/symbol/TER.png",
+      "bytes": 2811,
+      "width": 128,
+      "height": 33,
+      "sha256": "6636543fecd77eeb74b15d240fad6df01be55c4a90744ba9dd2ffa6a9f65bc2d"
+    },
+    {
+      "symbol": "TSEM",
+      "name": "Tower Semiconductor",
+      "url": "https://images.financialmodelingprep.com/symbol/TSEM.png",
+      "bytes": 17868,
+      "width": 128,
+      "height": 72,
+      "sha256": "a8fb96ff7245005dee0d0affd140d4a8e22f955ec2893936f2c6cb44b6367f34"
+    },
+    {
+      "symbol": "TSLA",
+      "name": "Tesla",
+      "url": "https://images.financialmodelingprep.com/symbol/TSLA.png",
+      "bytes": 9738,
+      "width": 250,
+      "height": 250,
+      "sha256": "4f1bd145f2ad8de3c83d973ab4c2a36e352fdd838bf3ba10e8b186f53509f8c0"
+    },
+    {
+      "symbol": "TSM",
+      "name": "Taiwan Semiconductor Manufacturing",
+      "url": "https://images.financialmodelingprep.com/symbol/TSM.png",
+      "bytes": 24451,
+      "width": 250,
+      "height": 250,
+      "sha256": "7fabd18a1cc531cd6b815f95b4263bde42c5250f5bf846465925e85df55c4a95"
+    },
+    {
+      "symbol": "TTD",
+      "name": "Trade Desk",
+      "url": "https://images.financialmodelingprep.com/symbol/TTD.png",
+      "bytes": 5606,
+      "width": 128,
+      "height": 128,
+      "sha256": "8ccbcebb85511f2931bda6a7361d6bba3beab94eb2acd4017a66febf81bf0be6"
+    },
+    {
+      "symbol": "TTWO",
+      "name": "Take-Two Interactive Software",
+      "url": "https://images.financialmodelingprep.com/symbol/TTWO.png",
+      "bytes": 16107,
+      "width": 200,
+      "height": 200,
+      "sha256": "65a459634b442ca787dea15eb698aaf5daf066c0a816ed5044d27e8ab02781ea"
+    },
+    {
+      "symbol": "UMC",
+      "name": "United Microelectronics",
+      "url": "https://images.financialmodelingprep.com/symbol/UMC.png",
+      "bytes": 5096,
+      "width": 240,
+      "height": 240,
+      "sha256": "991cfdccdfd50250a6aed5e10a5e285cb6a6869697c9e5ee3acbf1fbac17b7e9"
+    },
+    {
+      "symbol": "UNH",
+      "name": "UnitedHealth",
+      "url": "https://images.financialmodelingprep.com/symbol/UNH.png",
+      "bytes": 9070,
+      "width": 250,
+      "height": 250,
+      "sha256": "d34ad53fbaddc4ba557f88cf9e6ad6b1ce5e0ae3e0d7e3f97b9ff9486b991323"
+    },
+    {
+      "symbol": "UPS",
+      "name": "UPS",
+      "url": "https://images.financialmodelingprep.com/symbol/UPS.png",
+      "bytes": 35839,
+      "width": 200,
+      "height": 200,
+      "sha256": "ade2ddb7bdbb62e4b886a0647a6deb5f02a9e75f833f7211bb23630d673aab96"
+    },
+    {
+      "symbol": "USAR",
+      "name": "USA Rare Earth",
+      "url": "https://images.financialmodelingprep.com/symbol/USAR.png",
+      "bytes": 4653,
+      "width": 100,
+      "height": 100,
+      "sha256": "f1bf82071bf348e9f183c82501bffc61cdac7d357fbfe2e8b4e2362f7a1d7eaf"
+    },
+    {
+      "symbol": "USO",
+      "name": "United States Oil Fund",
+      "url": "https://images.financialmodelingprep.com/symbol/USO.png",
+      "bytes": 12216,
+      "width": 240,
+      "height": 240,
+      "sha256": "3da54fc238195c2c76a593635fde5a43d810c2ee2d2420fa2e4e2268b2350fad"
+    },
+    {
+      "symbol": "VICR",
+      "name": "Vicor",
+      "url": "https://images.financialmodelingprep.com/symbol/VICR.png",
+      "bytes": 22290,
+      "width": 250,
+      "height": 250,
+      "sha256": "ade2a4d731a81321e77121297d2c4d669b7e9909c9cc3d8a59c2f5ac843f0f7f"
+    },
+    {
+      "symbol": "VRT",
+      "name": "Vertiv",
+      "url": "https://images.financialmodelingprep.com/symbol/VRT.png",
+      "bytes": 3401,
+      "width": 100,
+      "height": 100,
+      "sha256": "7e628580b7b1603a5030ac8c8f3edeab9b3406d16f0539f39c50af5ddcb2924e"
+    },
+    {
+      "symbol": "VSAT",
+      "name": "ViaSat",
+      "url": "https://images.financialmodelingprep.com/symbol/VSAT.png",
+      "bytes": 15834,
+      "width": 250,
+      "height": 250,
+      "sha256": "cc6f0a44bce635189c780fa73b682ff39694c12cd7c66b4b078cddca4a1f560b"
+    },
+    {
+      "symbol": "VST",
+      "name": "Vistra",
+      "url": "https://images.financialmodelingprep.com/symbol/VST.png",
+      "bytes": 22685,
+      "width": 250,
+      "height": 250,
+      "sha256": "ff76897c834e46513d31b7ec74c584c59b10cf49be56e0fefe6c1c06fb22b4a8"
+    },
+    {
+      "symbol": "VTI",
+      "name": "Vanguard Morningstar Total Stock Market ETF",
+      "url": "https://images.financialmodelingprep.com/symbol/VTI.png",
+      "bytes": 11155,
+      "width": 250,
+      "height": 250,
+      "sha256": "b9c60f4ec4bf10bc98904226a3fc61c52f91aaeccee0778c2b628904c2b02079"
+    },
+    {
+      "symbol": "WDAY",
+      "name": "Workday",
+      "url": "https://images.financialmodelingprep.com/symbol/WDAY.png",
+      "bytes": 16301,
+      "width": 250,
+      "height": 250,
+      "sha256": "b3cf03d91a39dc1b383a117db5f627cfe8015442b5d5ca8f0621358583c1c604"
+    },
+    {
+      "symbol": "WDC",
+      "name": "Western Digital",
+      "url": "https://images.financialmodelingprep.com/symbol/WDC.png",
+      "bytes": 6826,
+      "width": 200,
+      "height": 200,
+      "sha256": "5f4f3ebb663487c089d15f1719fe3addfa436e1453807103143ee36fffad2535"
+    },
+    {
+      "symbol": "WULF",
+      "name": "TeraWulf",
+      "url": "https://images.financialmodelingprep.com/symbol/WULF.png",
+      "bytes": 3570,
+      "width": 144,
+      "height": 144,
+      "sha256": "b0c4327651e5abf1116c1e09baff1486881b5d94bc5045b9b1ac083adfadfc20"
+    },
+    {
+      "symbol": "WYFI",
+      "name": "WhiteFiber, Inc.",
+      "url": "https://images.financialmodelingprep.com/symbol/WYFI.png",
+      "bytes": 2017,
+      "width": 100,
+      "height": 100,
+      "sha256": "6546340b92f7c1bcb0df636bd27991e7bde36233276b9f11c8059a7f349ab327"
+    },
+    {
+      "symbol": "XLK",
+      "name": "State Street Technology Select Sector SPDR ETF",
+      "url": "https://images.financialmodelingprep.com/symbol/XLK.png",
+      "bytes": 2266,
+      "width": 144,
+      "height": 144,
+      "sha256": "20eef938b1449f910ecfb444c5acc01f4a18cfbeb286aa7cf34a591d11cc431c"
+    },
+    {
+      "symbol": "XNDU",
+      "name": "Xanadu Quantum",
+      "url": "https://images.financialmodelingprep.com/symbol/XNDU.png",
+      "bytes": 3478,
+      "width": 100,
+      "height": 100,
+      "sha256": "66aa63b5a65964ea3418c5177a0c4a2bc223fea36d1ba323c68c501e3336f8c9"
+    },
+    {
+      "symbol": "XOM",
+      "name": "ExxonMobil Holdings Corporation",
+      "url": "https://images.financialmodelingprep.com/symbol/XOM.png",
+      "bytes": 11061,
+      "width": 250,
+      "height": 250,
+      "sha256": "0b1d5fb71de7b018cc54dc117fa26d2e7c679e41d13976d23be5ad1ef18c5ad2"
+    },
+    {
+      "symbol": "ZM",
+      "name": "Zoom",
+      "url": "https://images.financialmodelingprep.com/symbol/ZM.png",
+      "bytes": 3717,
+      "width": 123,
+      "height": 123,
+      "sha256": "d848b56ba6e11c1397adc0f0a67112b4e8a472f24d72c8a1e41bb58e26ccf988"
+    },
+    {
+      "symbol": "ZS",
+      "name": "Zscaler",
+      "url": "https://images.financialmodelingprep.com/symbol/ZS.png",
+      "bytes": 6909,
+      "width": 128,
+      "height": 128,
+      "sha256": "3a458bcd6c359ce3c039da40b851605ffbe6e18b7d72b441fdcb3acb33b45499"
+    }
+  ]
+}

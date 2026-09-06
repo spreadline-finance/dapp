@@ -1,0 +1,6 @@
+.stock-logo { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; vertical-align: middle; overflow: hidden; background: #fff; border: 1px solid #dce2d3; border-radius: 50%; box-sizing: border-box; }
+.stock-logo > img { display: block; width: 74%; height: 74%; object-fit: contain; }
+.stock-logo > span { font: 500 12px/1 sans-serif; color: #657354; letter-spacing: -.03em; }
+.stock-logo[data-symbol="AMZN"] { background: #232f3e; border-color: #232f3e; }
+.stock-identity { display: inline-flex; align-items: center; gap: 9px; min-width: 0; }
+.wallet-table td:first-child > strong.stock-identity { display: flex; }

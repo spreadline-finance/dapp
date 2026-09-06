@@ -1,3 +1,4 @@
+import "./lending-execution.test";
 import "./position-planner.test";
 import "./arbitrage-monitor.test";
 import { test } from "node:test";

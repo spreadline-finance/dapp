@@ -1,0 +1,56 @@
+[
+  {
+    "chainId": 4663,
+    "address": "0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168",
+    "file": "usdg.svg",
+    "source": "https://cdn.morpho.org/assets/logos/usdg.svg",
+    "identitySource": "https://api.morpho.org/graphql",
+    "verifiedAt": "2026-09-06",
+    "note": "Official token logo associated with this exact chain and asset address by Morpho. Original artwork retained."
+  },
+  {
+    "chainId": 4663,
+    "address": "0x5d3a1Ff2b6BAb83b63cd9AD0787074081a52ef34",
+    "file": "usde.svg",
+    "source": "https://cdn.morpho.org/assets/logos/usde.svg",
+    "identitySource": "https://api.morpho.org/graphql",
+    "verifiedAt": "2026-09-06",
+    "note": "Official token logo associated with this exact chain and asset address by Morpho. Original artwork retained."
+  },
+  {
+    "chainId": 4663,
+    "address": "0x40858070814a57FdF33a613ae84fE0a8b4a874f7",
+    "file": "syrupusdg.svg",
+    "source": "https://cdn.morpho.org/assets/logos/syrupusdg.svg",
+    "identitySource": "https://api.morpho.org/graphql",
+    "verifiedAt": "2026-09-06",
+    "note": "Official token logo associated with this exact chain and asset address by Morpho. Original artwork retained."
+  },
+  {
+    "chainId": 4663,
+    "address": "0xFEd493F38c1aAcb4EA4e6A11F8b9287849EE0096",
+    "file": "mglo.svg",
+    "source": "https://cdn.morpho.org/assets/logos/mglo.svg",
+    "identitySource": "https://api.morpho.org/graphql",
+    "verifiedAt": "2026-09-06",
+    "note": "Official token logo associated with this exact chain and asset address by Morpho. Original artwork retained."
+  },
+  {
+    "chainId": 4663,
+    "address": "0xde770c84FE66E063336b31737cFE9790f18c4087",
+    "file": "spusdg.svg",
+    "source": "https://cdn.morpho.org/assets/logos/spusdg.svg",
+    "identitySource": "https://api.morpho.org/graphql",
+    "verifiedAt": "2026-09-06",
+    "note": "Official token logo associated with this exact chain and asset address by Morpho. Original artwork retained."
+  },
+  {
+    "chainId": 4663,
+    "address": "0x0Bd7D308f8E1639FAb988df18A8011f41EAcAD73",
+    "file": "weth.svg",
+    "source": "https://cdn.morpho.org/assets/logos/weth.svg",
+    "identitySource": "https://api.morpho.org/graphql",
+    "verifiedAt": "2026-09-06",
+    "note": "Official token logo associated with this exact chain and asset address by Morpho. Original artwork retained."
+  }
+]
