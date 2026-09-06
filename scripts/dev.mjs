@@ -1,4 +1,9 @@
 import { spawn } from "node:child_process";
+import { mkdir } from "node:fs/promises";
+
+// Wrangler serves the API in development, while Next serves the pages. Its
+// configured static directory must still exist on a fresh clone.
+await mkdir("out", { recursive: true });
 const children = [];
 let stopping = false;
 function stop(code = 0) {
