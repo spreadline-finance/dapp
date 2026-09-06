@@ -1,0 +1,37 @@
+.pwa-install { min-width: 0; width: 100%; }
+.pwa-install-button { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 44px; width: 100%; padding: 10px 12px; border: 1px solid #ccd6c1; border-radius: 9px; background: #f7f9f0; color: #3f5f2e; font-size: .875rem; text-align: left; }
+.pwa-install-button:disabled { opacity: .6; cursor: wait; }
+.pwa-install-help { display: flex; align-items: flex-start; gap: 8px; margin-top: 12px; color: #526349; font-size: .875rem; line-height: 1.65; }
+.pwa-install-help p { margin: 0; }.pwa-install-help svg { flex-shrink: 0; margin-top: 3px; }
+.pwa-installed { display: inline-flex; align-items: center; gap: 8px; font-size: .875rem; color: #526349; padding: 10px 0; }
+.pwa-offline-notice { display: flex; align-items: flex-start; gap: 10px; padding: 14px 16px; border: 1px solid #d9cfb8; border-radius: 10px; background: #f6efdf; color: #75603d; margin-bottom: 20px; }
+.pwa-offline-notice svg { flex-shrink: 0; margin-top: 2px; }.pwa-offline-notice p { margin: 0; font-size: .875rem; line-height: 1.6; }
+.app-bottom-nav, .app-mobile-wordmark { display: none; }
+.app-menu-overlay { position: fixed; inset: 0; background: #1e2b2066; z-index: 80; }
+.app-menu-sheet { position: fixed; inset: auto 0 0; max-height: calc(var(--app-viewport-height, 100dvh) - 20px); z-index: 81; overflow-y: auto; overscroll-behavior-y: contain; padding: 24px max(20px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left)); border-radius: 22px 22px 0 0; background: #f7f8f1; color: #293d23; box-shadow: 0 -12px 50px #1a271a20; animation: app-sheet-in 220ms cubic-bezier(.2,.8,.2,1); }
+.app-menu-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }.app-menu-heading h2 { font: 400 28px/1.2 var(--font-display), Georgia, serif; margin: 0; }.app-menu-heading button { width: 44px; height: 44px; flex-shrink: 0; display: grid; place-items: center; border: 1px solid #dce3d3; border-radius: 50%; background: #eef2e5; color: #435c35; }
+.app-menu-sheet nav { display: grid; gap: 3px; }.app-menu-sheet nav button { display: flex; align-items: center; gap: 14px; padding: 14px 8px; min-height: 52px; background: transparent; border: 0; border-radius: 9px; color: #536748; text-align: left; font-size: 1rem; }.app-menu-sheet nav button > span { flex: 1; }.app-menu-sheet nav button[aria-current="page"] { background: #e5edd9; color: #304d23; }
+.app-menu-install { margin-top: 18px; padding-top: 18px; border-top: 1px solid #dbe2d1; }.app-menu-install .pwa-install-button { min-height: 48px; font-size: 1rem; }
+.app-menu-about { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 14px; color: #576a4c; font-size: .875rem; }
+@keyframes app-sheet-in { from { opacity: .6; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes app-sheet-out { to { opacity: 0; transform: translateY(24px); } }
+@media (max-width: 760px) {
+  .desk { display: block; min-width: 0; }
+  .desk .desk-sidebar { display: none; }
+  .desk .desk-header { position: sticky; top: 0; z-index: 30; min-height: calc(64px + env(safe-area-inset-top)); height: auto; padding: calc(10px + env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 10px max(16px, env(safe-area-inset-left)); gap: 12px; background: #f6f7f0; }
+  .desk .desk-header > span, .desk .desk-header .desk-status { display: none; }
+  .desk .app-mobile-wordmark { display: block; font: 400 clamp(27px, 7.8vw, 34px)/1 var(--font-display), Georgia, serif; letter-spacing: -.035em; color: #2f4127; }
+  .desk .desk-header-actions { gap: 8px; min-width: 0; }.desk .desk-header-actions .button { min-height: 44px; font-size: .8125rem; padding: 10px 12px; border-radius: 10px; white-space: nowrap; }
+  .desk[data-view] .desk-work .desk-main { padding: 22px max(16px, env(safe-area-inset-right)) calc(90px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); min-width: 0; }
+  .desk .desk-page-heading { margin-bottom: 22px; gap: 12px; }.desk .desk-page-heading > div { min-width: 0; }.desk .desk-page-heading .eyebrow { display: none; }.desk .desk-page-heading h1 { font-size: clamp(30px, 8vw, 38px); line-height: 1.13; margin: 0 0 10px; overflow-wrap: anywhere; }.desk .desk-page-heading p { font-size: .9375rem; line-height: 1.6; }
+  .app-bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; z-index: 40; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); padding: 7px max(8px, env(safe-area-inset-right)) max(7px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)); background: #f8faf3; border-top: 1px solid #dbe2d1; }
+  .app-bottom-nav button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; padding: 7px 2px; min-height: 54px; border: 0; border-radius: 10px; background: transparent; color: #5b6d50; font-size: .75rem; font-weight: 500; touch-action: manipulation; transition: background 160ms, color 160ms; }
+  .app-bottom-nav button[aria-current="page"] { background: #e5eed9; color: #345324; }.app-bottom-nav button:active { background: #dce7ce; }
+  html[data-keyboard-open="true"] .app-bottom-nav { display: none; }
+  .desk :is(input:not([type="checkbox"]):not([type="range"]), select, textarea), .lending-dialog :is(input:not([type="checkbox"]):not([type="range"]), select) { font-size: 16px; }
+  .desk :is(button, summary), .lending-dialog :is(button, summary) { touch-action: manipulation; }
+  .app-menu-sheet[data-state="closed"] { animation: app-sheet-out 140ms ease-in; }
+  html .wallet-dialog { top: calc(var(--app-viewport-top, 0px) + 12px); transform: translateX(-50%); width: calc(100vw - 24px); max-width: 480px; max-height: calc(var(--app-viewport-height, 100dvh) - 24px); overflow-y: auto; overscroll-behavior-y: contain; padding: 24px; }
+}
+@media (max-width: 359px) { .desk .desk-header-actions .button { padding-inline: 9px; font-size: .75rem; }.desk[data-view] .desk-work .desk-main { padding-inline: 12px; } }
+@media (prefers-reduced-motion: reduce) { .app-bottom-nav button, .app-menu-sheet, .app-menu-sheet[data-state] { animation: none; transition: none; } }
