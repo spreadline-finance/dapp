@@ -1,6 +1,8 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
+import * as Dialog from "@radix-ui/react-dialog";
+import { ConnectionNotice, PwaInstallButton } from "./pwa";
 import { useEffect, useRef, useState } from "react";
 import {
   QueryClient,
@@ -21,22 +23,27 @@ import {
   Clock3,
   Copy,
   ExternalLink,
+  Ellipsis,
   Layers3,
+  Landmark,
   LoaderCircle,
   RefreshCw,
   Search,
   Server,
+  BookOpen,
   ShieldCheck,
   Wallet,
   X,
 } from "lucide-react";
-import { useWallet, WalletButton, type WalletState } from "./wallet";
+import { useWallet, WalletButton, DemoWalletNotice, type WalletState } from "./wallet";
+import { DemoPortfolio } from "./demo-portfolio";
 import {
   getData,
   DataError,
   displayNumber as n,
   shortAddress,
   ageLabel,
+  pollingInterval,
 } from "@/lib/live-api";
 import {
   CHAIN_ID,
@@ -54,15 +61,54 @@ import {
   type Portfolio,
   type CorporateActions,
 } from "@/lib/market-types";
+import { ReferenceChart, StrategyLab, RouteComparison, ProductGuide } from "./market-charts";
+import { recordPrices } from "@/lib/price-observations";
+import { OpportunityCheck, QuoteDecision, ResearchJournal } from "./opportunity-check";
+import { saveObservation } from "@/lib/research-journal";
+import { MarketTerminal } from "./market-terminal";
+import { StockLogo } from "./stock-logo";
+import { Lending } from "./lending";
+import { ResearchHistoryChart } from "./arbitrage-monitor";
+import { requestResearchQuote } from "@/lib/research-quote-client";
+import { PositionPlanner } from "./position-planner";
 import "./dapp.css";
-type View = "markets" | "routes" | "portfolio" | "activity" | "infrastructure";
+type View = "terminal" | "planner" | "lending" | "check" | "markets" | "routes" | "portfolio" | "activity" | "infrastructure" | "learn";
 const views = [
-  { id: "markets", label: "Markets", icon: ChartNoAxesCombined },
+  { id: "terminal", label: "Markets & trading", icon: ChartNoAxesCombined },
+  { id: "planner", label: "Position & exit planner", icon: Layers3 },
+  { id: "lending", label: "Lending", icon: Landmark },
+  { id: "check", label: "Arbitrage research", icon: Search },
+  { id: "markets", label: "Asset directory", icon: ChartNoAxesCombined },
   { id: "routes", label: "Route analysis", icon: Layers3 },
   { id: "portfolio", label: "Portfolio", icon: Wallet },
-  { id: "activity", label: "Activity", icon: Activity },
-  { id: "infrastructure", label: "Infrastructure", icon: Server },
+  { id: "activity", label: "Research log", icon: Activity },
+  { id: "learn", label: "How it works", icon: BookOpen },
+  { id: "infrastructure", label: "Sources & status", icon: Server },
 ] as const;
+function MobileNavigation({ view, onNavigate }: { view: View; onNavigate: (view: View) => void }) {
+  const [open, setOpen] = useState(false);
+  const primary = [{ id: "terminal", label: "Markets", icon: ChartNoAxesCombined }, { id: "lending", label: "Lending", icon: Landmark }, { id: "portfolio", label: "Portfolio", icon: Wallet }] as const;
+  const secondary = views.filter((item) => !primary.some((main) => main.id === item.id));
+  useEffect(() => {
+    const desktop = window.matchMedia("(min-width: 761px)");
+    const closeOnDesktop = () => { if (desktop.matches) setOpen(false); };
+    desktop.addEventListener("change", closeOnDesktop);
+    return () => desktop.removeEventListener("change", closeOnDesktop);
+  }, []);
+  return <Dialog.Root open={open} onOpenChange={setOpen}>
+    <nav className="app-bottom-nav" aria-label="Mobile workspace">
+      {primary.map((item) => <button key={item.id} aria-current={view === item.id ? "page" : undefined} onClick={() => onNavigate(item.id)}><item.icon size={21}/><span>{item.label}</span></button>)}
+      <Dialog.Trigger aria-current={secondary.some((item) => item.id === view) ? "page" : undefined}><Ellipsis size={22}/><span>More</span></Dialog.Trigger>
+    </nav>
+    <Dialog.Portal><Dialog.Overlay className="app-menu-overlay"/><Dialog.Content className="app-menu-sheet">
+      <div className="app-menu-heading"><Dialog.Title>More from Spreadline</Dialog.Title><Dialog.Close aria-label="Close navigation"><X size={20}/></Dialog.Close></div>
+      <Dialog.Description className="sr-only">Research tools, data sources and app installation.</Dialog.Description>
+      <nav aria-label="More workspace views">{secondary.map((item) => <button key={item.id} aria-current={view === item.id ? "page" : undefined} onClick={() => { setOpen(false); onNavigate(item.id); }}><item.icon size={20}/><span>{item.label}</span><ChevronRight size={17}/></button>)}</nav>
+      <div className="app-menu-install"><PwaInstallButton/></div>
+      <Link className="app-menu-about" href="/">About Spreadline<ArrowUpRight size={16}/></Link>
+    </Dialog.Content></Dialog.Portal>
+  </Dialog.Root>;
+}
 function useClock() {
   const [now, setNow] = useState(0);
   useEffect(() => {
@@ -104,13 +150,15 @@ function ErrorBox({
   error: Error | null;
   retry?: () => void;
 }) {
+  const now = useClock();
+  const remaining = error instanceof DataError ? Math.max(0, Math.ceil((error.retryAt - now) / 1000)) : 0;
   return error ? (
-    <div className="desk-error" role="alert">
+    <div className="desk-error" role="status">
       <CircleHelp size={17} />
       <p>{error.message}</p>
       {retry && (
-        <button onClick={retry}>
-          Retry <RefreshCw size={13} />
+        <button onClick={retry} disabled={remaining > 0}>
+          {remaining > 0 ? `Retry in ${remaining}s` : "Retry"} <RefreshCw size={13} />
         </button>
       )}
     </div>
@@ -128,23 +176,6 @@ function SkeletonRows() {
         </div>
       ))}
     </div>
-  );
-}
-function AssetIcon({ asset }: { asset: StockAsset }) {
-  const [failed, setFailed] = useState(false);
-  return (
-    <span className="stock-icon">
-      {asset.logo && !failed ? (
-        <img
-          src={asset.logo}
-          alt=""
-          loading="lazy"
-          onError={() => setFailed(true)}
-        />
-      ) : (
-        asset.symbol.slice(0, 1)
-      )}
-    </span>
   );
 }
 function Empty({
@@ -175,11 +206,11 @@ function PoolPanel({
     queryKey: ["pools", symbol],
     queryFn: ({ signal }) =>
       getData<PoolBook>(`pools?symbol=${encodeURIComponent(symbol)}`, signal),
-    refetchInterval: 20000,
-    staleTime: 10000,
+    refetchInterval: (q) => pollingInterval(60000, q.state.error, q.state.fetchFailureCount, q.state.data?.dataStatus?.retryAt),
+    staleTime: 60000,
   });
   const data = query.data;
-  const stale = !!data && now - Date.parse(data.blockTimestamp) > 30000;
+  const stale = !!data && (!!data.dataStatus || now - Date.parse(data.blockTimestamp) > 90000);
   return (
     <div className="desk-panel pool-panel">
       <div className="desk-panel-heading">
@@ -199,6 +230,7 @@ function PoolPanel({
         Discovered through the official Uniswap V3 factory.
       </div>
       <ErrorBox error={query.error} retry={() => void query.refetch()} />
+      {data?.dataStatus && <p className="panel-note">Last successful pool snapshot · {ageLabel(data.fetchedAt, now)}. Updates resume automatically.</p>}
       {query.isPending ? (
         <SkeletonRows />
       ) : data?.pools.length ? (
@@ -269,7 +301,9 @@ function RouteAnalysis({
   now,
   onQuote,
   onInfrastructure,
+  initialQuote,
 }: {
+  initialQuote?: QuoteBook;
   assets: StockAsset[];
   symbol: string;
   setSymbol: (v: string) => void;
@@ -277,24 +311,21 @@ function RouteAnalysis({
   onQuote: (q: QuoteBook) => void;
   onInfrastructure: () => void;
 }) {
-  const [amount, setAmount] = useState("1000");
+  const [amount, setAmount] = useState(initialQuote?.amountIn ?? "1000");
   const controller = useRef<AbortController | null>(null);
   useEffect(() => () => controller.current?.abort(), []);
   const quote = useMutation({
     mutationFn: async () => {
       controller.current?.abort();
       controller.current = new AbortController();
-      return getData<QuoteBook>(
-        `quote?symbol=${encodeURIComponent(symbol)}&amount=${encodeURIComponent(amount)}`,
-        controller.current.signal,
-      );
+      return requestResearchQuote(symbol, amount, controller.current.signal);
     },
     onSuccess: onQuote,
   });
-  const data = quote.data;
+  const data = quote.data ?? (initialQuote?.symbol === symbol && Number(initialQuote.amountIn) === Number(amount) ? initialQuote : undefined);
+  const quoteCooldown = quote.error instanceof DataError ? Math.max(0, Math.ceil((quote.error.retryAt - now) / 1000)) : 0;
   const expired = !!data && now >= Date.parse(data.expiresAt);
   const selected = assets.find((a) => a.symbol === symbol);
-  const best = data?.routes[0];
   const amountValid =
     /^\d{1,7}(\.\d{1,6})?$/.test(amount) &&
     Number(amount) >= 1 &&
@@ -313,7 +344,7 @@ function RouteAnalysis({
           <div className="route-builder-body">
             <label htmlFor="route-asset">Stock Token</label>
             <div className="route-token-input">
-              {selected && <AssetIcon asset={selected} />}
+              {selected && <StockLogo symbol={selected.symbol} />}
               <select
                 id="route-asset"
                 value={symbol}
@@ -383,7 +414,7 @@ function RouteAnalysis({
             </p>
             <button
               className="button button-primary route-quote-button"
-              disabled={quote.isPending || !amountValid || !selected}
+              disabled={quote.isPending || !amountValid || !selected || quoteCooldown > 0}
               onClick={() => quote.mutate()}
             >
               {quote.isPending ? (
@@ -393,7 +424,7 @@ function RouteAnalysis({
                 </>
               ) : (
                 <>
-                  Get live route quotes <ArrowUpRight size={16} />
+                  {quoteCooldown > 0 ? `Provider cooldown · ${quoteCooldown}s` : "Get live route quotes"} <ArrowUpRight size={16} />
                 </>
               )}
             </button>
@@ -433,62 +464,7 @@ function RouteAnalysis({
           </div>
         ) : data ? (
           <>
-            <div className={`quote-result-card ${expired ? "expired" : ""}`}>
-              <div>
-                <span className="eyebrow">
-                  {best ? "BEST QUOTED GROSS SURPLUS" : "ROUTE AVAILABILITY"}
-                </span>
-                <span className={`data-tag ${expired ? "warning" : ""}`}>
-                  <i />
-                  {expired
-                    ? "Quote expired"
-                    : `Expires in ${Math.max(0, Math.ceil((Date.parse(data.expiresAt) - now) / 1000))}s`}
-                </span>
-              </div>
-              <strong
-                className={
-                  best && Number(best.surplus) > 0
-                    ? "quote-positive"
-                    : "quote-negative"
-                }
-              >
-                {best
-                  ? `${Number(best.surplus) > 0 ? "+" : ""}${n(best.surplus, 6)}`
-                  : "No quote available"}
-                {best && <small> USDG</small>}
-              </strong>
-              <p>
-                {best
-                  ? Number(best.surplus) > 0
-                    ? "Positive before executor fees and transaction gas. This does not establish a profitable executable trade."
-                    : "The best quoted route returns less than the starting amount, even before executor fees and transaction gas."
-                  : "Fewer than two active pools or all attempted paths failed to quote. No opportunity has been inferred."}
-              </p>
-              <div className="quote-result-stats">
-                <div>
-                  <span>Starting amount</span>
-                  <strong>{n(data.amountIn, 2)} USDG</strong>
-                </div>
-                <div>
-                  <span>Best quoted return</span>
-                  <strong>{best ? `${n(best.amountOut, 6)} USDG` : "—"}</strong>
-                </div>
-                <div>
-                  <span>Executor fees + full gas</span>
-                  <strong>Not available</strong>
-                </div>
-              </div>
-              <div className="result-source">
-                <a
-                  href={`${EXPLORER}/block/${data.blockNumber}`}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Block {n(data.blockNumber, 0)} <ArrowUpRight size={12} />
-                </a>
-                <span>{ageLabel(data.blockTimestamp, now)}</span>
-              </div>
-            </div>
+            <QuoteDecision key={`${data.symbol}-${data.blockHash}-${data.amountIn}`} quote={data} now={now} />
             {expired && (
               <div className="desk-notice">
                 <Clock3 size={17} />
@@ -498,6 +474,7 @@ function RouteAnalysis({
                 <button onClick={() => quote.mutate()}>Requote</button>
               </div>
             )}
+            <RouteComparison data={data} />
             <div className="desk-panel">
               <div className="desk-panel-heading">
                 <h2>Compared routes</h2>
@@ -593,21 +570,21 @@ function RouteAnalysis({
         <div className="execution-gate">
           <div>
             <span className="offline-dot" />
-            <strong>Live execution is not enabled</strong>
+            <strong>Automated round trips are not enabled</strong>
           </div>
           <p>
             No Spreadline executor is deployed/configured in this application.
-            No funds can be deposited or traded through it.
+            This round-trip research view does not submit trades.
           </p>
           <button className="text-link" onClick={onInfrastructure}>
-            View the execution dependencies <ArrowUpRight size={14} />
+            Understand the data sources <ArrowUpRight size={14} />
           </button>
         </div>
       </div>
     </div>
   );
 }
-function PortfolioView({ wallet }: { wallet: WalletState }) {
+function PortfolioView({ wallet, onPlan }: { wallet: WalletState; onPlan: (symbol: string, amount?: string) => void }) {
   const [input, setInput] = useState("");
   const [watch, setWatch] = useState("");
   const address = watch || wallet.account;
@@ -618,11 +595,12 @@ function PortfolioView({ wallet }: { wallet: WalletState }) {
         `portfolio?address=${encodeURIComponent(address!)}`,
         signal,
       ),
-    enabled: !!address,
-    refetchInterval: 30000,
-    staleTime: 15000,
+    enabled: !!address && !wallet.demoWallet,
+    refetchInterval: (q) => pollingInterval(60000, q.state.error, q.state.fetchFailureCount),
+    staleTime: 60000,
   });
   const formValid = /^0x[a-fA-F0-9]{40}$/.test(input);
+  if (wallet.demoWallet) return <DemoPortfolio wallet={wallet.demoWallet} onPlan={onPlan}/>;
   return (
     <>
       <div className="portfolio-top">
@@ -739,13 +717,14 @@ function PortfolioView({ wallet }: { wallet: WalletState }) {
                     <th>Asset</th>
                     <th>Token balance</th>
                     <th>Contract</th>
+                    <th>Exit planning</th>
                   </tr>
                 </thead>
                 <tbody>
                   {query.data.tokens.map((t) => (
                     <tr key={t.address}>
                       <td>
-                        <strong>{t.symbol}</strong>
+                        <strong className="stock-identity"><StockLogo symbol={t.symbol} size={28}/>{t.symbol}</strong>
                         <span>
                           {t.symbol === "USDG"
                             ? "Settlement asset"
@@ -768,6 +747,7 @@ function PortfolioView({ wallet }: { wallet: WalletState }) {
                           {shortAddress(t.address)} <ArrowUpRight size={12} />
                         </a>
                       </td>
+                      <td>{t.symbol !== "USDG" && <button className="planner-portfolio-action" disabled={t.balance === null || Number(t.balance) <= 0} onClick={() => onPlan(t.symbol, t.balance ?? undefined)} aria-label={`Plan an exit for your ${t.symbol} balance`}>Compare exit sizes <ArrowUpRight size={13}/></button>}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -797,7 +777,7 @@ function PortfolioView({ wallet }: { wallet: WalletState }) {
     </>
   );
 }
-function ActivityView({ history, now }: { history: QuoteBook[]; now: number }) {
+function ActivityView({ now, onArbitrage }: { now: number; onArbitrage: () => void }) {
   const actions = useQuery({
     queryKey: ["corporate-actions"],
     queryFn: ({ signal }) =>
@@ -805,55 +785,16 @@ function ActivityView({ history, now }: { history: QuoteBook[]; now: number }) {
     staleTime: 3600000,
   });
   return (
-    <div className="activity-layout">
-      <div className="desk-panel">
-        <div className="desk-panel-heading">
-          <h2>This session’s quotes</h2>
-          <span>Read-only requests</span>
-        </div>
-        {history.length ? (
-          <div className="quote-history">
-            {history.map((q, i) => (
-              <div key={`${q.blockNumber}-${i}`}>
-                <span className="history-icon">
-                  <Layers3 size={18} />
-                </span>
-                <div>
-                  <strong>
-                    {q.symbol} · {n(q.amountIn, 0)} USDG
-                  </strong>
-                  <span>
-                    {q.routes.length} routes quoted ·{" "}
-                    {ageLabel(q.fetchedAt, now)}
-                  </span>
-                </div>
-                <a
-                  href={`${EXPLORER}/block/${q.blockNumber}`}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Block {n(q.blockNumber, 0)} <ArrowUpRight size={12} />
-                </a>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <Empty title="No quote requests yet.">
-            Run a route analysis to see its real block reference here. This
-            session log is not a trading history.
-          </Empty>
-        )}
-        <div className="panel-note">
-          Transaction history is unavailable until a Spreadline executor is
-          deployed. No trades have been submitted by this interface.
-        </div>
-      </div>
+    <div className="research-activity">
+      <ResearchHistoryChart now={now} onOpen={onArbitrage}/>
+      <ResearchJournal now={now}/>
       <div className="desk-panel">
         <div className="desk-panel-heading">
           <h2>Stock Token corporate actions</h2>
           <span>Robinhood API</span>
         </div>
         <ErrorBox error={actions.error} retry={() => void actions.refetch()} />
+        {actions.data?.dataStatus && <p className="panel-note">Cached corporate actions · fetched {ageLabel(actions.data.fetchedAt, now)}. The source is reconnecting.</p>}
         {actions.isPending ? (
           <SkeletonRows />
         ) : actions.data?.items.length ? (
@@ -881,20 +822,20 @@ function ActivityView({ history, now }: { history: QuoteBook[]; now: number }) {
     </div>
   );
 }
-function Infrastructure({ network }: { network: NetworkState | undefined }) {
+function Infrastructure({ network, networkCurrent }: { network: NetworkState | undefined; networkCurrent: boolean }) {
   return (
     <div className="infrastructure-layout">
       <div className="desk-panel">
         <div className="desk-panel-heading">
-          <h2>Connected infrastructure</h2>
-          <span>Verified sources</span>
+          <h2>Market data sources</h2>
+          <span>Read-only connections</span>
         </div>
         <div className="source-list">
           {[
             {
               name: "Robinhood Chain",
               detail: `Chain ${CHAIN_ID} · ETH gas`,
-              status: network ? "RPC responding" : "RPC unavailable",
+              status: networkCurrent ? "RPC responding" : network ? "Last chain snapshot" : "RPC reconnecting",
               url: "https://docs.robinhood.com/chain/connecting/",
             },
             {
@@ -953,51 +894,20 @@ function Infrastructure({ network }: { network: NetworkState | undefined }) {
       </div>
       <div className="desk-panel production-panel">
         <div className="desk-panel-heading">
-          <h2>Before live execution</h2>
+          <h2>What the numbers mean</h2>
           <span className="data-tag warning">
             <i />
-            Not enabled
+            Research mode
           </span>
         </div>
         <div className="production-items">
-          <div>
-            <span>01</span>
-            <div>
-              <h3>Deploy and verify the executor</h3>
-              <p>
-                The application has no execution contract, token allowances or
-                spending permissions. Contract deployment, testing and
-                independent security review are still required.
-              </p>
-            </div>
-          </div>
-          <div>
-            <span>02</span>
-            <div>
-              <h3>Configure production RPC capacity</h3>
-              <p>
-                {network?.provider === "dedicated"
-                  ? "A dedicated RPC endpoint is configured. Its capacity and operational monitoring still need to match launch traffic."
-                  : "This deployment uses the public RPC. Robinhood explicitly recommends dedicated infrastructure for production traffic."}
-              </p>
-            </div>
-          </div>
-          <div>
-            <span>03</span>
-            <div>
-              <h3>Operate the execution service</h3>
-              <p>
-                Continuous route monitoring, inclusion handling, transaction
-                simulation, gas accounting and execution records need an
-                operating service. A page showing quotes does not perform that
-                work.
-              </p>
-            </div>
-          </div>
+          <div><span>01</span><div><h3>Reference is context</h3><p>Issuer bid and ask are shown in USD, adjusted by the Stock Token’s multiplier. Every observation retains the issuer’s timestamp, including when a cached read is displayed.</p></div></div>
+          <div><span>02</span><div><h3>A pool price is a snapshot</h3><p>USDG prices come from Uniswap V3 pool state at one chain block. They describe the pool before your trade. Trade size, swap fees and price impact change what you receive.</p></div></div>
+          <div><span>03</span><div><h3>A route quote goes further</h3><p>Both swaps are simulated at the same block through different pools. Gross surplus includes swap fees and price impact, but still excludes executor fees and full transaction gas. Quotes expire after 20 seconds.</p></div></div>
         </div>
         <p className="panel-note">
           Current release: live market reads, wallet balances and V3 route
-          quotes. No deposits, approvals, token launch or automated trading.
+          quotes. One-way wallet swaps are available in Markets & trading; automated round trips are not enabled.
         </p>
       </div>
     </div>
@@ -1005,28 +915,31 @@ function Infrastructure({ network }: { network: NetworkState | undefined }) {
 }
 function Workspace() {
   const wallet = useWallet();
-  const [view, setView] = useState<View>("markets");
+  const [view, setView] = useState<View>("terminal");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
   const [symbol, setSymbol] = useState("NVDA");
-  const [history, setHistory] = useState<QuoteBook[]>([]);
+  const [inspectedQuote, setInspectedQuote] = useState<QuoteBook>();
+  const [plannerSeed, setPlannerSeed] = useState<{ id: number; symbol: string; amount?: string; walletContext: string }>();
+  const walletContext = wallet.demoWallet ? `demo:${wallet.demoWallet.id}` : wallet.account ?? "guest";
   const now = useClock();
   useEffect(() => {
     const sync = () => {
       const v = new URLSearchParams(window.location.search).get("view");
       if (views.some((item) => item.id === v)) setView(v as View);
-      else setView("markets");
+      else setView("terminal");
     };
     sync();
     window.addEventListener("popstate", sync);
     return () => window.removeEventListener("popstate", sync);
   }, []);
   function navigate(next: View) {
+    if (next === view) return;
     setView(next);
     window.history.pushState(
       {},
       "",
-      next === "markets" ? "/app" : `/app?view=${next}`,
+      next === "terminal" ? "/app" : `/app?view=${next}`,
     );
     window.scrollTo({ top: 0, behavior: "instant" });
   }
@@ -1034,19 +947,13 @@ function Workspace() {
     queryKey: ["catalog"],
     queryFn: ({ signal }) => getData<Catalog>("catalog", signal),
     staleTime: 300000,
-    refetchInterval: 300000,
-  });
-  const prices = useQuery({
-    queryKey: ["prices"],
-    queryFn: ({ signal }) => getData<PriceBook>("prices", signal),
-    staleTime: 15000,
-    refetchInterval: view === "markets" ? 30000 : false,
+    refetchInterval: (q) => pollingInterval(300000, q.state.error, q.state.fetchFailureCount, q.state.data?.dataStatus?.retryAt),
   });
   const network = useQuery({
     queryKey: ["network"],
     queryFn: ({ signal }) => getData<NetworkState>("network", signal),
-    staleTime: 5000,
-    refetchInterval: 10000,
+    staleTime: 30000,
+    refetchInterval: (q) => pollingInterval(30000, q.state.error, q.state.fetchFailureCount, q.state.data?.dataStatus?.retryAt),
   });
   const assets = catalog.data?.assets ?? [];
   const active = assets.filter((a) => a.active);
@@ -1065,18 +972,53 @@ function Workspace() {
   );
   const visible = filtered.slice(page * 12, page * 12 + 12);
   const pages = Math.max(1, Math.ceil(filtered.length / 12));
+  const priceSymbols = [...new Set([...(view === "terminal" ? TRACKED_SYMBOLS : visible.map((asset) => asset.symbol)), symbol])].sort().join(",");
+  const prices = useQuery({
+    queryKey: ["prices", priceSymbols],
+    queryFn: async ({ signal }) => {
+      const book = await getData<PriceBook>(`prices?symbols=${encodeURIComponent(priceSymbols)}`, signal);
+      if (!catalog.data?.dataStatus) recordPrices(book, assets);
+      return book;
+    },
+    enabled: assets.length > 0 && (view === "terminal" || view === "markets" || view === "portfolio"),
+    staleTime: 60000,
+    refetchInterval: (q) => (view === "markets" || view === "terminal") ? pollingInterval(60000, q.state.error, q.state.fetchFailureCount, q.state.data?.dataStatus?.retryAt) : false,
+  });
+  const reads = [
+    { name: "Registry", query: catalog },
+    { name: "Reference prices", query: prices },
+    { name: "Chain", query: network },
+  ];
+  const refreshWait = Math.max(0, ...reads.map(({ query }) => {
+    const deadline = query.error instanceof DataError ? query.error.retryAt : query.data?.dataStatus ? Date.parse(query.data.dataStatus.retryAt) : 0;
+    return Math.ceil((deadline - now) / 1000);
+  }));
   const priceMap = new Map(prices.data?.quotes.map((q) => [q.symbol, q]) ?? []);
   const chainStale =
     !network.data ||
     network.isError ||
-    now - Date.parse(network.data.blockTimestamp) > 30000;
-  function analyze(next: string) {
+    !!network.data?.dataStatus ||
+    now - Date.parse(network.data.blockTimestamp) > 90000;
+  function analyze(next: string, observed?: QuoteBook) {
+    setInspectedQuote(observed);
     setSymbol(next);
     navigate("routes");
   }
+  function planPosition(next: string, amount?: string) {
+    setSymbol(next);
+    setPlannerSeed({ id: Date.now(), symbol: next, amount, walletContext });
+    navigate("planner");
+  }
   const titles: Record<View, { title: string; description: string }> = {
+    terminal: { title: "Your market. Your next move.", description: "Robinhood Stock Tokens, issuer insights and wallet trading." },
+    planner: { title: "Position & exit planner", description: "See how trade size changes what you could receive." },
+    lending: { title: "Put your assets to work.", description: "Explore real rates. Deposit, earn and manage your Morpho positions on Robinhood Chain." },
+    check: {
+      title: "An eye on every route.",
+      description: "Follow live round-trip quotes. Compare pools. Watch the edge change.",
+    },
     markets: {
-      title: "The execution desk.",
+      title: "The market observatory.",
       description:
         "Official Stock Tokens. Real pool liquidity. The information behind a trade.",
     },
@@ -1092,16 +1034,19 @@ function Workspace() {
     activity: {
       title: "Every read has a reference.",
       description:
-        "Session quote records and corporate actions from the issuer.",
+        "Your saved quote observations, source failures and issuer corporate actions.",
     },
     infrastructure: {
-      title: "Know what is connected.",
-      description:
-        "Live integrations, canonical contracts and the remaining execution dependencies.",
+      title: "Know your sources.",
+      description: "The connections, contracts and data behind each observation.",
+    },
+    learn: {
+      title: "The difference is in the return.",
+      description: "Explore the idea behind Spreadline, then test the economics yourself.",
     },
   };
   return (
-    <div className="desk">
+    <div className="desk" data-view={view}>
       <a href="#desk-main" className="skip-link">
         Skip to workspace
       </a>
@@ -1109,7 +1054,7 @@ function Workspace() {
         <Link className="wordmark" href="/">
           spreadline
         </Link>
-        <span className="desk-workspace-label">EXECUTION WORKSPACE</span>
+        <span className="desk-workspace-label">MARKET WORKSPACE</span>
         <nav aria-label="Workspace">
           {views.map((item) => (
             <button
@@ -1123,7 +1068,12 @@ function Workspace() {
             </button>
           ))}
         </nav>
+        <div className="desk-sidebar-art" aria-hidden="true">
+          <img src="/artwork/hero-engraving.webp" alt="" />
+          <span>FIND THE EDGE.<br />FOLLOW IT THROUGH.</span>
+        </div>
         <div className="desk-sidebar-bottom">
+          <PwaInstallButton/>
           <ShieldCheck size={19} />
           <p>
             Robinhood Chain
@@ -1137,6 +1087,7 @@ function Workspace() {
       </aside>
       <div className="desk-work">
         <header className="desk-header">
+          <Link href="/app" className="app-mobile-wordmark" aria-label="Spreadline markets">spreadline</Link>
           <span>
             Workspace <span>/</span>
             {views.find((v) => v.id === view)?.label}
@@ -1147,24 +1098,26 @@ function Workspace() {
               {network.isPending
                 ? "Connecting"
                 : chainStale
-                  ? "Chain data unavailable"
+                  ? network.data ? "Last chain snapshot" : "Chain reconnecting"
                   : "Mainnet connected"}
             </span>
             <WalletButton wallet={wallet} />
           </div>
         </header>
         <main className="desk-main" id="desk-main">
+          <ConnectionNotice/>
+          <DemoWalletNotice wallet={wallet}/>
           <div className="desk-page-heading">
             <div>
-              <span className="eyebrow">ROBINHOOD CHAIN / LIVE DATA</span>
+              <span className="eyebrow">SPREADLINE / STOCK TOKEN DESK</span>
               <h1 className="display">{titles[view].title}</h1>
               <p>{titles[view].description}</p>
             </div>
-            <button
+            {view === "markets" && <button
               className="refresh-data"
               aria-label="Refresh live data"
               disabled={
-                network.isFetching || catalog.isFetching || prices.isFetching
+                network.isFetching || catalog.isFetching || prices.isFetching || refreshWait > 0
               }
               onClick={() => {
                 void network.refetch();
@@ -1176,11 +1129,24 @@ function Workspace() {
                 size={16}
                 className={network.isFetching ? "spin" : ""}
               />
-              <span>Refresh</span>
-            </button>
+              <span>{refreshWait > 0 ? `Resumes in ${refreshWait}s` : "Refresh"}</span>
+            </button>}
           </div>
+          {view === "terminal" && <><div className="planner-launch"><p>Planning a position? Compare entry or exit costs at three sizes.</p><button onClick={() => planPosition(symbol)}>Open position planner <ArrowRight size={16}/></button></div><MarketTerminal assets={sorted} book={prices.data} network={network.data} symbol={symbol} onSelect={setSymbol} now={now} wallet={wallet} registryCached={!!catalog.data?.dataStatus} priceError={prices.error?.message ?? null}/></>}
+          {view === "planner" && <PositionPlanner key={`${plannerSeed?.id ?? "manual"}:${walletContext}`} assets={sorted} symbol={symbol} onSelect={setSymbol} wallet={wallet} now={now} registryReady={!!catalog.data && !catalog.data.dataStatus} registryError={catalog.error?.message ?? catalog.data?.dataStatus?.reason ?? null} initialAmount={plannerSeed?.symbol === symbol && plannerSeed.walletContext === walletContext ? plannerSeed.amount : undefined}/>}
+          {view === "lending" && <Lending assets={assets} now={now} wallet={wallet}/>}
+          {view === "check" && <OpportunityCheck assets={assets} registryReady={!!catalog.data && !catalog.data.dataStatus} registryError={catalog.error?.message ?? catalog.data?.dataStatus?.reason ?? null} now={now} onInspect={analyze} onLearn={() => navigate("learn")}/>}
           {view === "markets" && (
             <>
+              <div className="observatory-intro">
+                <div>
+                  <span className="eyebrow">ONE ASSET. DIFFERENT POOLS.</span>
+                  <h2 className="display">A price gap is only<br /><em>the beginning.</em></h2>
+                  <p>Follow a Stock Token across pools. Compare the complete USDG round trip. See what remains after the costs.</p>
+                  <button className="text-link" onClick={() => navigate("routes")}>Explore a route <ArrowUpRight size={15} /></button>
+                </div>
+                <img src="/artwork/execution.webp" alt="Engraved paths passing through a precision gate, illustrating a complete trading route" />
+              </div>
               <div className="desk-metrics">
                 <div>
                   <span>ACTIVE STOCK TOKENS</span>
@@ -1190,7 +1156,7 @@ function Workspace() {
                   </strong>
                 </div>
                 <div>
-                  <span>LATEST CHAIN BLOCK</span>
+                  <span>LAST OBSERVED BLOCK</span>
                   <strong>
                     {network.data ? n(network.data.blockNumber, 0) : "—"}
                     <small>
@@ -1201,7 +1167,7 @@ function Workspace() {
                   </strong>
                 </div>
                 <div>
-                  <span>CURRENT GAS PRICE</span>
+                  <span>OBSERVED GAS PRICE</span>
                   <strong>
                     {network.data
                       ? n(Number(network.data.gasPriceWei) / 1e9, 5)
@@ -1210,16 +1176,23 @@ function Workspace() {
                   </strong>
                 </div>
                 <div>
-                  <span>SPREADLINE EXECUTION</span>
+                  <span>WORKSPACE MODE</span>
                   <strong className="metric-status">
-                    Not enabled<small>No executor configured</small>
+                    Research<small>Live reads · simulated routes</small>
                   </strong>
                 </div>
               </div>
-              <ErrorBox
-                error={network.error}
-                retry={() => void network.refetch()}
-              />
+              <div className="source-health" role="status">
+                <span className="source-health-label">DATA PULSE</span>
+                {reads.map(({ name, query }) => <span key={name}><i className={query.isError || query.data?.dataStatus ? "cooling" : query.data ? "ready" : "pending"}/>{name}<small>{query.data?.dataStatus ? "Cached" : query.isError ? "Reconnecting" : query.data ? "Responding" : "Connecting"}</small></span>)}
+              </div>
+              {reads.some(({ query }) => query.error || query.data?.dataStatus) && <div className="source-recovery"><Clock3 size={16}/><p>{reads.some(({ query }) => query.data) ? "Keeping the last successful observations visible while the provider recovers." : "Connecting to the market sources. The strategy model is ready to explore below."} Updates resume automatically{refreshWait > 0 ? ` in ${refreshWait}s` : ""}.</p></div>}
+              {!!prices.data?.unavailableSymbols?.length && <p className="partial-prices">Awaiting issuer quotes for {prices.data.unavailableSymbols.join(", ")}. Available quotes are shown below.</p>}
+              {!!prices.data?.cachedSymbols?.length && <p className="partial-prices">Last available observations retained for {prices.data.cachedSymbols.join(", ")}. Original issuer timestamps are shown.</p>}
+              <div className="market-visuals">
+                <ReferenceChart symbol={symbol} assets={sorted} book={prices.data} now={now} onSelect={setSymbol} registryCached={!!catalog.data?.dataStatus}/>
+                <div className="market-reading-card"><span className="eyebrow">READ BETWEEN THE PRICES</span><h2 className="display">One token.<br/><em>More than one price.</em></h2><p>The issuer’s USD reference tells you about the underlying exposure. A pool’s USDG price tells you about its liquidity.</p><img src="/artwork/hero-engraving.webp" alt=""/><button className="text-link" onClick={() => navigate("learn")}>How Spreadline connects them <ArrowUpRight size={14}/></button></div>
+              </div>
               <div className="market-workspace">
                 <div className="desk-panel markets-panel">
                   <div className="desk-panel-heading">
@@ -1265,14 +1238,7 @@ function Workspace() {
                         : "Loading registry"}
                     </span>
                   </div>
-                  <ErrorBox
-                    error={catalog.error}
-                    retry={() => void catalog.refetch()}
-                  />
-                  <ErrorBox
-                    error={prices.error}
-                    retry={() => void prices.refetch()}
-                  />
+
                   {catalog.isPending ? (
                     <SkeletonRows />
                   ) : visible.length ? (
@@ -1293,7 +1259,7 @@ function Workspace() {
                           {visible.map((asset) => {
                             const q = priceMap.get(asset.symbol);
                             const stale =
-                              !!q && now - Date.parse(q.generatedAt) > 90000;
+                              !!q && (!!catalog.data?.dataStatus || !!prices.data?.dataStatus || !!prices.data?.cachedSymbols?.includes(asset.symbol) || now - Date.parse(q.generatedAt) > 90000);
                             return (
                               <tr
                                 key={asset.address}
@@ -1306,7 +1272,7 @@ function Workspace() {
                                     className="stock-name"
                                     onClick={() => setSymbol(asset.symbol)}
                                   >
-                                    <AssetIcon asset={asset} />
+                                    <StockLogo symbol={asset.symbol} />
                                     <span>
                                       <strong>
                                         {asset.symbol}
@@ -1334,7 +1300,7 @@ function Workspace() {
                                   <small>
                                     {q?.halted
                                       ? "Underlying trading halted"
-                                      : "USD per token · reference only"}
+                                      : catalog.data?.dataStatus ? "Cached multiplier · reference only" : "USD per token · reference only"}
                                   </small>
                                 </td>
                                 <td>
@@ -1349,7 +1315,7 @@ function Workspace() {
                                   >
                                     {q
                                       ? ageLabel(q.generatedAt, now)
-                                      : "Unavailable"}
+                                      : "Awaiting quote"}
                                   </span>
                                   {stale && <small>Last available quote</small>}
                                 </td>
@@ -1369,11 +1335,9 @@ function Workspace() {
                       </table>
                     </div>
                   ) : (
-                    !catalog.error && (
-                      <Empty title="No matching Stock Tokens.">
-                        Try another symbol, company name or contract address.
-                      </Empty>
-                    )
+                    <Empty title={catalog.error ? "The registry is reconnecting." : "No matching Stock Tokens."}>
+                      {catalog.error ? "Official tokens will return here when the source responds. You can explore the strategy model while you wait." : "Try another symbol, company name or contract address."}
+                    </Empty>
                   )}
                   <div className="market-pagination">
                     <span>
@@ -1437,22 +1401,23 @@ function Workspace() {
               </div>
             </>
           )}
+          {view === "learn" && <><ProductGuide onAnalyze={() => navigate("routes")}/><StrategyLab/></>}
           {view === "routes" && (
             <RouteAnalysis
+              key={inspectedQuote ? `${inspectedQuote.symbol}-${inspectedQuote.blockHash}-${inspectedQuote.amountIn}` : "manual"}
+              initialQuote={inspectedQuote}
               assets={assets}
               symbol={symbol}
               setSymbol={setSymbol}
               now={now}
-              onQuote={(q) =>
-                setHistory((current) => [q, ...current].slice(0, 20))
-              }
+              onQuote={(q) => saveObservation({ id: crypto.randomUUID(), symbol: q.symbol, amount: q.amountIn, quote: q, checkedAt: new Date().toISOString(), assumedCost: null })}
               onInfrastructure={() => navigate("infrastructure")}
             />
           )}
-          {view === "portfolio" && <PortfolioView wallet={wallet} />}
-          {view === "activity" && <ActivityView history={history} now={now} />}
+          {view === "portfolio" && <PortfolioView key={walletContext} wallet={wallet} onPlan={planPosition} />}
+          {view === "activity" && <ActivityView now={now} onArbitrage={() => navigate("check")} />}
           {view === "infrastructure" && (
-            <Infrastructure network={network.data} />
+            <Infrastructure network={network.data} networkCurrent={!chainStale} />
           )}
           <footer className="desk-footer">
             <span>
@@ -1476,6 +1441,7 @@ function Workspace() {
           </footer>
         </main>
       </div>
+      <MobileNavigation view={view} onNavigate={navigate}/>
     </div>
   );
 }
@@ -1485,11 +1451,10 @@ export function Dapp() {
       new QueryClient({
         defaultOptions: {
           queries: {
-            retry: (failureCount, error) =>
-              !(error instanceof DataError && error.status === 429) &&
-              failureCount < 1,
-            retryDelay: 2000,
-            refetchOnWindowFocus: true,
+            retry: false,
+            refetchOnWindowFocus: false,
+            refetchOnReconnect: false,
+            gcTime: 30 * 60 * 1000,
             refetchIntervalInBackground: false,
           },
           mutations: { retry: false },

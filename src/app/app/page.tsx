@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { Dapp } from "@/components/dapp";
 export const metadata: Metadata = {
-  title: "Spreadline — Execution desk",
+  title: "Spreadline — Markets & trading",
   description:
-    "Robinhood Chain market monitoring, wallet balances and route analysis.",
+    "Robinhood Stock Token market data, corporate actions, live buy and sell comparisons, and wallet-confirmed Uniswap trading.",
 };
 export default function AppPage() {
   return <Dapp />;

@@ -1,3 +1,4 @@
+import "./demo-wallet.test";
 import "./pwa.test";
 import "./lending-execution.test";
 import "./position-planner.test";

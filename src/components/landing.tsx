@@ -82,17 +82,17 @@ function Opportunity({ onDemo }: { onDemo: () => void }) {
     const refresh = () =>
       Promise.all([
         getData<Catalog>("catalog", controller.signal),
-        getData<PriceBook>("prices", controller.signal),
+        getData<PriceBook>("prices?symbols=AAPL,NVDA,TSLA", controller.signal),
       ])
         .then(([catalog, prices]) => {
           setData({ catalog, prices });
-          setError(false);
+          setError(!!catalog.dataStatus || !!prices.dataStatus || !!prices.cachedSymbols?.length || !!prices.unavailableSymbols?.length);
         })
         .catch(() => {
           if (!controller.signal.aborted) setError(true);
         });
     void refresh();
-    const timer = setInterval(() => void refresh(), 30000);
+    const timer = setInterval(() => { if (!document.hidden) void refresh(); }, 60000);
     return () => {
       controller.abort();
       clearInterval(timer);
@@ -153,10 +153,7 @@ function Opportunity({ onDemo }: { onDemo: () => void }) {
                   </strong>
                   <span>
                     {q
-                      ? new Date(q.generatedAt).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })
+                      ? `${data?.catalog.dataStatus || data?.prices.dataStatus || data?.prices.cachedSymbols?.includes(symbol) ? "Cached · " : ""}${new Date(q.generatedAt).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}`
                       : error
                         ? "Source unavailable"
                         : "Connecting to source"}
@@ -306,7 +303,7 @@ const faqs = [
   ],
   [
     "Can I use Spreadline today?",
-    "The dApp reads live market data, connects browser wallets for balances and quotes real Uniswap V3 round trips. It does not execute trades. Live execution still needs a deployed executor, an operating service and security review.",
+    "The dApp shows Robinhood market data and offers one-way USDG / Stock Token trading through Uniswap V3. Wallet trades require balance checks, exact-amount approval where needed, simulation and your confirmation. Automated round-trip execution remains a separate, unimplemented product.",
   ],
   [
     "Where does the Spreadline token fit?",
@@ -423,12 +420,10 @@ export function Landing() {
                   Launch app <ArrowUpRight size={17} />
                 </button>
                 <a
-                  href="/app?view=learn"
-                  target="_blank"
-                  rel="noreferrer"
+                  href="/app?view=planner"
                   className="button button-secondary"
                 >
-                  How it works <ArrowUpRight size={17} />
+                  Plan a position <ArrowUpRight size={17} />
                 </a>
               </div>
               <p className="hero-note">
@@ -625,8 +620,6 @@ export function Landing() {
             <a
               className="text-link"
               href="/app?view=learn"
-              target="_blank"
-              rel="noreferrer"
             >
               How it works <ArrowUpRight size={16} />
             </a>
@@ -674,14 +667,12 @@ export function Landing() {
           <div className="footer-bottom">
             <span>© 2026 Spreadline</span>
             <p>
-              Live market reads. No trade execution. Third-party names and logos
+              Live market data. Wallet-confirmed swaps. Third-party names and logos
               identify referenced assets and infrastructure; they do not
               indicate endorsement.
             </p>
             <a
               href="/app?view=learn"
-              target="_blank"
-              rel="noreferrer"
             >
               How it works ↗
             </a>
