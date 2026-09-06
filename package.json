@@ -1,0 +1,45 @@
+{
+  "name": "spreadline-web",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "build": "next build --webpack && node scripts/build-worker.mjs",
+    "start": "wrangler dev --ip 127.0.0.1 --port 3000",
+    "lint": "eslint",
+    "test": "node scripts/test.mjs",
+    "types:worker": "wrangler types server/worker-configuration.d.ts",
+    "typecheck:worker": "npm run types:worker && tsc --noEmit -p tsconfig.worker.json",
+    "db:migrate:local": "wrangler d1 migrations apply SPREADLINE_DB --local"
+  },
+  "dependencies": {
+    "@radix-ui/react-dialog": "^1.1.23",
+    "@tanstack/react-query": "^5.102.8",
+    "drizzle-orm": "^0.45.2",
+    "lottie-react": "^3.1.1",
+    "lucide-react": "^1.41.0",
+    "motion": "^13.2.0",
+    "next": "16.3.4",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "viem": "^2.56.3",
+    "zod": "^4.5.4"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260905.1",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "drizzle-kit": "^0.31.10",
+    "esbuild": "^0.28.2",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.4",
+    "tailwindcss": "^4",
+    "typescript": "^5",
+    "wrangler": "^4.129.0"
+  }
+}

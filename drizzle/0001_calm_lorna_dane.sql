@@ -1,0 +1,1 @@
+CREATE INDEX `request_budgets_window_idx` ON `request_budgets` (`window_start`);

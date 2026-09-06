@@ -1,0 +1,3 @@
+# Use a dedicated provider URL for a production rollout.
+# Copy to .dev.vars locally; configure ROBINHOOD_RPC_URL as a secret on the host.
+ROBINHOOD_RPC_URL=https://rpc.mainnet.chain.robinhood.com

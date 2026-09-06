@@ -1,0 +1,80 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+/dist/
+/.wrangler/
+.dev.vars*
+!.dev.vars.example
+
+# Local Impeccable engine and temporary design state
+/.impeccable/
+
+# Local hosting and agent configuration
+/.openai/
+/.agents/
+/.codex/
+/.claude/
+/AGENTS.md
+/CLAUDE.md
+/DESIGN.md
+
+# Development research and marketing exports
+/docs/
+/research/
+/marketing/
+/output/
+/tmp/
+/public/documents/
+*.pdf
+*.docx
+*.pptx
+
+# Generated Worker declarations and local files
+/server/worker-configuration.d.ts
+/.idea/
+/.vscode/
+*.key
+*.log
+*.swp
+*.swo
+Thumbs.db
+!.env.example
