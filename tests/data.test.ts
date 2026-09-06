@@ -1,3 +1,4 @@
+import "./position-planner.test";
 import "./arbitrage-monitor.test";
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -172,6 +173,7 @@ test("price feed retains source timestamps and halted state and rejects crossed 
       generatedAt: quote.generatedAt,
       halted: false,
       currency: "USD",
+      dailyTradingVolume: null,
     },
   ]);
   assert.equal(

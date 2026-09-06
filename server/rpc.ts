@@ -14,7 +14,7 @@ export function requestTransport(
   const signal = AbortSignal.timeout(18000);
   const factory = http(url, {
     timeout: 12000,
-    retryCount: 1,
+    retryCount: 0,
     maxResponseBodySize: 2_000_000,
     batch: { batchSize: 50, wait: 10 },
     fetchFn,
