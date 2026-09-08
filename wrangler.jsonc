@@ -11,11 +11,15 @@
   },
   "vars": {
     "ROBINHOOD_RPC_URL": "https://rpc.mainnet.chain.robinhood.com",
+    "DESK_VAULT_ADDRESS": "",
+    "DESK_VAULT_CODE_HASH": "",
+    "DESK_VAULT_DEPLOY_BLOCK": "0",
   },
   "observability": {
     "enabled": true,
     "head_sampling_rate": 1,
   },
+  "triggers": { "crons": ["*/5 * * * *"] },
   "d1_databases": [
     {
       "binding": "SPREADLINE_DB",

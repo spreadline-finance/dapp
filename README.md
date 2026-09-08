@@ -47,6 +47,12 @@ That workflow connects the rest of the workspace:
 | **Portfolio** | Inspect balances and bring an exact holding into the planner. |
 | **Lending** | Explore Morpho markets and V2 vaults, inspect rates and manage positions. |
 | **Arbitrage research** | Compare supported round-trip routes and record observations. |
+| **Desk & earn** | Inspect live pools, follow a verified USDG strategy vault, and manage capital and reward claims once launched. |
+
+The new [Desk & earn module](DESK.md) includes a locally tested atomic trading vault,
+75/25 reward accounting, wallet actions and an operator runner. The default vault
+is unlaunched: live research works, while deposits and earnings require a reviewed,
+verified, funded deployment. No return is guaranteed.
 
 ## Transparent by design
 

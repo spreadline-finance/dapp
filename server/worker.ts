@@ -1,5 +1,6 @@
 import { consumeBudget } from "./rate-limit";
 import { createMarketService } from "./market-service";
+import { createDeskService, deskScheduledSymbol, readDeskHistory, recordDeskObservation } from "./desk-service";
 import { createLendingService } from "./lending-service";
 import { createLendingExecutionService } from "./lending-execution-service";
 import { discoverLendingPositions } from "./lending-positions-service";
@@ -119,6 +120,9 @@ export default {
       "/api/lending/position",
       "/api/lending/positions",
       "/api/lending/plan",
+      "/api/desk",
+      "/api/desk/pools",
+      "/api/desk/history",
     ]);
     if (!allowed.has(url.pathname))
       return json({ error: "Endpoint not found." }, 404);
@@ -135,6 +139,9 @@ export default {
       "/api/lending/positions": ["address"],
       "/api/lending/position": ["kind", "id", "address", "minBlock"],
       "/api/lending/plan": ["kind", "id", "address", "operation", "amount", "all", "slippageBps", "minBlock"],
+      "/api/desk": ["address"],
+      "/api/desk/pools": ["symbol"],
+      "/api/desk/history": ["symbol"],
     };
     if (
       [...url.searchParams.keys()].some(
@@ -142,13 +149,14 @@ export default {
       )
     )
       return json({ error: "Unsupported query parameter." }, 400);
-    if (["/api/position-plan", "/api/planner-position"].includes(url.pathname) &&
+    if (["/api/position-plan", "/api/planner-position", "/api/desk", "/api/desk/pools", "/api/desk/history"].includes(url.pathname) &&
         [...url.searchParams.keys()].some((key) => url.searchParams.getAll(key).length !== 1))
       return json({ error: "Duplicate query parameters are not supported." }, 400);
     const isSwap = ["/api/swap-quote", "/api/trade-plan"].includes(url.pathname);
     const isPlanner = url.pathname === "/api/position-plan";
     const isLendingPrivate = ["/api/lending/position", "/api/lending/plan", "/api/lending/positions"].includes(url.pathname);
-    const needsAddress = ["/api/portfolio", "/api/trade-plan", "/api/planner-position"].includes(url.pathname) || isLendingPrivate;
+    const isDeskPrivate = url.pathname === "/api/desk" && url.searchParams.has("address");
+    const needsAddress = ["/api/portfolio", "/api/trade-plan", "/api/planner-position"].includes(url.pathname) || isLendingPrivate || isDeskPrivate;
     const privateRead = needsAddress || isPlanner;
     let lendingKind: LendingKind = "market", lendingId = "", minBlock = 0n;
     let lendingIntent: LendingIntent | undefined;
@@ -190,7 +198,7 @@ export default {
           url.searchParams.set("symbols", symbols.join(","));
         }
       }
-      if (url.pathname === "/api/pools" || url.pathname === "/api/quote" || isSwap || isPlanner || url.pathname === "/api/planner-position")
+      if (url.pathname === "/api/pools" || url.pathname === "/api/quote" || isSwap || isPlanner || url.pathname === "/api/planner-position" || url.pathname === "/api/desk/pools" || url.pathname === "/api/desk/history")
         symbol = parseSymbol(url.searchParams.get("symbol"));
       if (isPlanner) {
         const rawSide = url.searchParams.get("side");
@@ -228,6 +236,7 @@ export default {
         mode: "market-data-and-wallet-trading",
         walletTradingEnabled: true,
         walletLendingEnabled: true,
+        deskVaultConfigured: Boolean(env.DESK_VAULT_ADDRESS && env.DESK_VAULT_CODE_HASH),
         chainId: 4663,
         executionEnabled: false,
         rpcTier:
@@ -243,6 +252,7 @@ export default {
       "/api/catalog": 86400, "/api/prices": 21600, "/api/network": 300,
       "/api/pools": 300, "/api/corporate-actions": 86400,
       "/api/lending/markets": 900, "/api/lending/vaults": 900, "/api/lending/history": 1800,
+      "/api/desk/pools": 300,
     };
     async function unavailable(status: number, retryAfter: number, message: string) {
       const retryAt = new Date(Date.now() + retryAfter * 1000).toISOString();
@@ -332,7 +342,7 @@ export default {
       );
       const lending = createLendingService(readBoundedJSON);
       if (
-        ["/api/quote", "/api/pools", "/api/portfolio", "/api/lending/history", "/api/planner-position"].includes(url.pathname) || isSwap || isLendingPrivate || isPlanner
+        ["/api/quote", "/api/pools", "/api/portfolio", "/api/lending/history", "/api/planner-position", "/api/desk", "/api/desk/pools", "/api/desk/history"].includes(url.pathname) || isSwap || isLendingPrivate || isPlanner
       ) {
         const budget = await consumeBudget(
           env.SPREADLINE_DB,
@@ -366,6 +376,18 @@ export default {
       let data: unknown;
       let ttl = 0;
       switch (url.pathname) {
+        case "/api/desk":
+          data = await createDeskService(env.ROBINHOOD_RPC_URL || PUBLIC_RPC, env, service).snapshot(address);
+          ttl = isDeskPrivate ? 0 : 15;
+          break;
+        case "/api/desk/pools":
+          data = await createDeskService(env.ROBINHOOD_RPC_URL || PUBLIC_RPC, env, service).pools(symbol);
+          ttl = 30;
+          break;
+        case "/api/desk/history":
+          data = await readDeskHistory(env.SPREADLINE_DB, symbol);
+          ttl = 60;
+          break;
         case "/api/position-plan":
           data = await service.positionPlan(symbol, side, amount);
           break;
@@ -464,5 +486,27 @@ export default {
       }
       return unavailable(status, seconds, message);
     }
+  },
+  async scheduled(controller: ScheduledController, env: Env): Promise<void> {
+    const sources = new Map<string, Promise<{ value: unknown; fetchedAt: string }>>();
+    const service = createMarketService(env.ROBINHOOD_RPC_URL || PUBLIC_RPC, async (upstream) => {
+      const previous = sources.get(upstream);
+      if (previous) return previous;
+      const read = (async () => {
+        const response = await fetch(upstream, { headers: { accept: "application/json" }, signal: AbortSignal.timeout(8000) });
+        return { value: await readBoundedJSON(response), fetchedAt: new Date().toISOString() };
+      })();
+      sources.set(upstream, read);
+      return read;
+    });
+    const desk = createDeskService(env.ROBINHOOD_RPC_URL || PUBLIC_RPC, env, service);
+    const symbol = deskScheduledSymbol(controller.scheduledTime);
+    const [pools, snapshot] = await Promise.allSettled([desk.pools(symbol), desk.snapshot()]);
+    if (pools.status === "rejected" || snapshot.status === "rejected")
+      console.error(JSON.stringify({ event: "desk_recording_partial", symbol, poolsRead: pools.status, vaultRead: snapshot.status }));
+    await recordDeskObservation(env.SPREADLINE_DB, pools.status === "fulfilled" ? pools.value : null, snapshot.status === "fulfilled" ? snapshot.value : null);
+    console.info(JSON.stringify({ event: "desk_recorded", symbol, pools: pools.status === "fulfilled" ? pools.value.pools.length : 0,
+      failedPoolReads: pools.status === "fulfilled" ? pools.value.failedReads : null,
+      vaultStatus: snapshot.status === "fulfilled" ? snapshot.value.status : "unavailable" }));
   },
 } satisfies ExportedHandler<Env>;

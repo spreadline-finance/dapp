@@ -33,6 +33,7 @@ import {
   BookOpen,
   ShieldCheck,
   Wallet,
+  Vault,
   X,
 } from "lucide-react";
 import { useWallet, WalletButton, DemoWalletNotice, type WalletState } from "./wallet";
@@ -68,15 +69,17 @@ import { saveObservation } from "@/lib/research-journal";
 import { MarketTerminal } from "./market-terminal";
 import { StockLogo } from "./stock-logo";
 import { Lending } from "./lending";
+import { StrategyDesk } from "./desk";
 import { ResearchHistoryChart } from "./arbitrage-monitor";
 import { requestResearchQuote } from "@/lib/research-quote-client";
 import { PositionPlanner } from "./position-planner";
 import "./dapp.css";
-type View = "terminal" | "planner" | "lending" | "check" | "markets" | "routes" | "portfolio" | "activity" | "infrastructure" | "learn";
+type View = "terminal" | "planner" | "lending" | "desk" | "check" | "markets" | "routes" | "portfolio" | "activity" | "infrastructure" | "learn";
 const views = [
   { id: "terminal", label: "Markets & trading", icon: ChartNoAxesCombined },
   { id: "planner", label: "Position & exit planner", icon: Layers3 },
   { id: "lending", label: "Lending", icon: Landmark },
+  { id: "desk", label: "Desk & earn", icon: Vault },
   { id: "check", label: "Arbitrage research", icon: Search },
   { id: "markets", label: "Asset directory", icon: ChartNoAxesCombined },
   { id: "routes", label: "Route analysis", icon: Layers3 },
@@ -1013,6 +1016,7 @@ function Workspace() {
     terminal: { title: "Your market. Your next move.", description: "Robinhood Stock Tokens, issuer insights and wallet trading." },
     planner: { title: "Position & exit planner", description: "See how trade size changes what you could receive." },
     lending: { title: "Put your assets to work.", description: "Explore real rates. Deposit, earn and manage your Morpho positions on Robinhood Chain." },
+    desk: { title: "A shared edge.", description: "Follow the markets, see the strategy, and share in realized trading surplus." },
     check: {
       title: "An eye on every route.",
       description: "Follow live round-trip quotes. Compare pools. Watch the edge change.",
@@ -1135,6 +1139,7 @@ function Workspace() {
           {view === "terminal" && <><div className="planner-launch"><p>Planning a position? Compare entry or exit costs at three sizes.</p><button onClick={() => planPosition(symbol)}>Open position planner <ArrowRight size={16}/></button></div><MarketTerminal assets={sorted} book={prices.data} network={network.data} symbol={symbol} onSelect={setSymbol} now={now} wallet={wallet} registryCached={!!catalog.data?.dataStatus} priceError={prices.error?.message ?? null}/></>}
           {view === "planner" && <PositionPlanner key={`${plannerSeed?.id ?? "manual"}:${walletContext}`} assets={sorted} symbol={symbol} onSelect={setSymbol} wallet={wallet} now={now} registryReady={!!catalog.data && !catalog.data.dataStatus} registryError={catalog.error?.message ?? catalog.data?.dataStatus?.reason ?? null} initialAmount={plannerSeed?.symbol === symbol && plannerSeed.walletContext === walletContext ? plannerSeed.amount : undefined}/>}
           {view === "lending" && <Lending assets={assets} now={now} wallet={wallet}/>}
+          {view === "desk" && <StrategyDesk assets={sorted} now={now} wallet={wallet} onAnalyze={analyze} registryError={catalog.error?.message ?? catalog.data?.dataStatus?.reason ?? null}/>}
           {view === "check" && <OpportunityCheck assets={assets} registryReady={!!catalog.data && !catalog.data.dataStatus} registryError={catalog.error?.message ?? catalog.data?.dataStatus?.reason ?? null} now={now} onInspect={analyze} onLearn={() => navigate("learn")}/>}
           {view === "markets" && (
             <>
@@ -1429,7 +1434,7 @@ function Workspace() {
                 : `Robinhood Chain · ${n(network.data?.blockNumber, 0)}`}
             </span>
             <div>
-              <span>Live data · no automated execution</span>
+              <span>{view === "desk" ? "Vault strategy · USDG settlement" : "Live data · no automated execution"}</span>
               <a
                 href="https://docs.robinhood.com/chain/"
                 target="_blank"

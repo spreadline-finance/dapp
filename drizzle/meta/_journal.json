@@ -15,6 +15,13 @@
       "when": 1788648172891,
       "tag": "0001_calm_lorna_dane",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1788886478146,
+      "tag": "0002_desk_observations",
+      "breakpoints": true
     }
   ]
 }
