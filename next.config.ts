@@ -1,6 +1,13 @@
 import type { NextConfig } from "next";
+import { deploymentConfig } from "./config/deployment";
+const deployment = deploymentConfig(process.env);
 const nextConfig: NextConfig = {
-  ...(process.env.NODE_ENV === "development" ? {} : { output: "export" as const }),
+  ...(deployment.staticExport ? { output: "export" as const } : {}),
+  ...(deployment.apiOrigin ? {
+    async rewrites() {
+      return [{ source: "/api/:path*", destination: `${deployment.apiOrigin}/api/:path*` }];
+    },
+  } : {}),
   images: { unoptimized: true },
   turbopack: { root: process.cwd() },
   ...(process.env.NODE_ENV === "development"
@@ -12,14 +19,6 @@ const nextConfig: NextConfig = {
             { key: "Service-Worker-Allowed", value: "/" },
             { key: "X-Content-Type-Options", value: "nosniff" },
           ] }];
-        },
-        async rewrites() {
-          return [
-            {
-              source: "/api/:path*",
-              destination: "http://127.0.0.1:8787/api/:path*",
-            },
-          ];
         },
       }
     : {}),

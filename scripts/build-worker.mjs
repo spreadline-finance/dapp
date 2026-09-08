@@ -1,5 +1,9 @@
 import { build } from "esbuild";
 import { cp, mkdir, rm } from "node:fs/promises";
+if (process.env.VERCEL === "1") {
+  console.log("Vercel frontend built; API requests are proxied to the configured Worker.");
+  process.exit(0);
+}
 await rm("dist", { recursive: true, force: true });
 await mkdir("dist/server", { recursive: true });
 await cp("out", "dist/client", { recursive: true });

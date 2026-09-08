@@ -1,3 +1,4 @@
+import "./deployment.test";
 import "./pwa.test";
 import "./position-planner.test";
 import "./demo-wallet.test";

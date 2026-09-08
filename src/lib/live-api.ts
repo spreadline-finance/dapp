@@ -33,7 +33,9 @@ export async function getData<T>(path: string, signal?: AbortSignal): Promise<T>
   try { body = await response.json(); }
   catch (error) {
     if (signal?.aborted) throw error;
-    body = { error: "The data service is reconnecting. Please wait for the next update." };
+    body = { error: response.status === 404
+      ? "The market data service is unavailable on this deployment. Please try again later."
+      : "The data service returned an invalid response. Please try again later." };
   }
   if (!response.ok || !body || typeof body !== "object" || "error" in body) {
     const message = body && typeof body === "object" && "error" in body && typeof body.error === "string" ? body.error : "Unable to load live data.";

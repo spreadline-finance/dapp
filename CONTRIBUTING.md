@@ -136,6 +136,31 @@ builds retain `noindex, nofollow`. Building or running the test suite does not
 deploy the app. Existing private hosting configuration is not part of this repo.
 
 
+For account-specific deployments, copy `wrangler.jsonc` to
+`wrangler.production.local.jsonc`, set your account and database IDs there, and
+pass `--config wrangler.production.local.jsonc` to Wrangler commands. This local
+configuration is ignored by Git, keeping the shared configuration portable.
+
+### Vercel frontend
+
+Vercel hosts the Next.js frontend; the Cloudflare Worker must be deployed separately
+with D1 and its migrations. Setting an RPC URL in Vercel does not create the API.
+
+Use the **Next.js** framework preset, `npm run build`, and the default output
+directory (remove any `out` override). Configure these build-time variables:
+
+| Variable | Value |
+| --- | --- |
+| `NEXT_PUBLIC_SITE_URL` | Your public frontend origin, e.g. `https://spredline.vercel.app` |
+| `SPREADLINE_API_ORIGIN` | Your deployed Worker's HTTPS origin, without `/api` or credentials |
+
+Vercel builds require `SPREADLINE_API_ORIGIN` and proxy `/api/*` to that Worker.
+Keep `ROBINHOOD_RPC_URL` and the D1 binding on the Worker. Local development still
+uses port 8787; non-Vercel production builds still export the frontend and Worker.
+After redeploying, `/api/health` should return JSON with `status: "ok"`, and
+`/api/lending/markets` should return JSON containing `markets`. An HTML 404 means
+the API routing or deployment is missing, rather than a market filter issue.
+
 ## Changes and pull requests
 
 - Keep each change focused on a concrete problem. For larger work, explain the
