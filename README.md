@@ -1,169 +1,113 @@
 # Spreadline
 
-A self-hostable workspace for researching Stock Tokens, comparing position sizes,
-trading through Uniswap V3 and exploring Morpho lending on Robinhood Chain.
+### Plan the position. Understand the exit.
 
-Spreadline combines live market data with explicit wallet review. The server reads
-and simulates; your wallet signs and submits transactions. It never holds a private
-key, and it does not run an automated trading bot.
+![Spreadline — markets, trading and lending](public/og.png)
 
-## Features
+**A trading workspace for tokenized equities, built around the decisions that matter.**
 
-- **Markets and trading:** issuer reference prices, corporate actions, pool quotes,
-  exact-amount approvals and wallet-confirmed USDG / Stock Token swaps.
-- **Position and exit planner:** compare 25%, 50% and 100% of a holding or USDG
-  budget at one pinned block, including average prices and a price-deterioration
-  threshold relative to the 25% quote.
-- **Arbitrage research:** compare round-trip routes across supported V3 pools,
-  inspect quote coverage and keep a local research journal.
-- **Lending:** browse Morpho markets and V2 vaults, inspect variable rates, discover
-  positions and prepare deposits or withdrawals for wallet review.
-- **Portfolio:** inspect ETH, USDG and tracked Stock Token balances using a
-  connected wallet or a public address.
-- **Local demo wallets:** three preset portfolios for trying holdings and the
-  planner without a browser wallet extension.
-- **Installable PWA:** mobile navigation and an offline information screen. Wallet
-  requests and market data are never replayed from an offline queue.
+Spreadline brings market research, position planning, wallet trading and lending
+into one interface on Robinhood Chain. Its focus is practical: help traders
+understand what a position could cost to enter, what it could return on exit, and
+how those estimates change with size.
 
-## Run locally
+[Explore the code](src/) · [Try it locally](CONTRIBUTING.md#run-locally) · [Contribute](CONTRIBUTING.md)
 
-Requirements: **Node.js 22.13 or later**, npm, and internet access for live data.
-The repository includes an `.nvmrc` for Node.js 22.
+## A price is only the beginning
 
-```sh
-npm ci
-npm run db:migrate:local
-npm run dev
-```
+Before acting on a position, a trader needs more than a displayed price:
 
-Open **[localhost:3000/app](http://localhost:3000/app)**.
-Next.js serves the frontend on port 3000 and proxies `/api/*` to the local
-Cloudflare Worker on port 8787. D1 stores request budgets in `.wrangler/`.
-Local development does not require a Cloudflare account or a funded wallet.
+- How much could I receive if I sell part of my holding?
+- How does the average execution price change if I sell the full amount?
+- Which supported pool offers the strongest quote for this size?
+- How recent is the data, and what costs are still outside the estimate?
 
-The public Robinhood RPC is configured by default. To use a dedicated endpoint:
+**Spreadline makes these questions the starting point of the product.**
 
-```sh
-cp .dev.vars.example .dev.vars
-# Set ROBINHOOD_RPC_URL in .dev.vars.
-```
+## From a holding to a decision
 
-`.dev.vars` and `.env*` are ignored. Keep provider credentials server-side; do not
-prefix them with `NEXT_PUBLIC_`.
+The position and exit planner is the clearest expression of that idea.
 
-### Try a demo wallet
+Start with a Stock Token holding or a USDG budget. Compare **25%, 50% and 100%**
+of that amount against supported pools at the same blockchain snapshot. Inspect
+estimated proceeds, average prices and the largest tested size within your chosen
+price-deterioration threshold relative to the 25% quote.
 
-1. Run `npm run dev` and open **Connect wallet → Try a demo wallet**.
-2. Choose **Diversified**, **Concentrated** or **Fractional**.
-3. In Portfolio, select **Compare exit sizes** to load an exact holding into the
-   planner. The planner also has **Use demo holding** and **Use demo budget**.
+For example, a trader holding NVDA can compare a partial exit with a full exit
+before choosing an amount. The comparison exposes the effect of size, along with
+missing quotes and expiry. It does not place an order or guarantee a fill.
 
-Holdings are fictional; market quotes remain live and need an available API.
-Demo mode has no wallet address or signing provider, disables transaction execution,
-and resets on reload. It does not simulate fills or lending positions.
+That workflow connects the rest of the workspace:
 
-Demo availability requires a development build and an exact loopback hostname:
-`localhost`, `127.0.0.1` or `[::1]`. Presets are excluded from production bundles,
-including production builds served on localhost. Edit quantities in
-[`src/lib/demo-wallet-presets.ts`](src/lib/demo-wallet-presets.ts).
-
-## Development commands
-
-| Command | Purpose |
+| Workspace | What it helps you do |
 | --- | --- |
-| `npm run dev` | Run the frontend and local Worker API |
-| `npm run db:migrate:local` | Apply D1 migrations locally |
-| `npm run lint` | Check TypeScript, React and Next.js lint rules |
-| `npm run types:worker` | Generate Worker binding and runtime declarations |
-| `npm run typecheck:worker` | Regenerate declarations and check Worker types |
-| `npm test` | Run the Node.js regression suite |
-| `npm run build` | Build the static frontend and bundle the Worker |
-| `npm start` | Serve the production build locally on port 3000 |
+| **Markets** | Research issuer reference prices, corporate actions and pool liquidity. |
+| **Position planner** | Compare entry budgets or exit sizes before committing capital. |
+| **Trading** | Review live pool quotes and prepare a swap for confirmation in your wallet. |
+| **Portfolio** | Inspect balances and bring an exact holding into the planner. |
+| **Lending** | Explore Morpho markets and V2 vaults, inspect rates and manage positions. |
+| **Arbitrage research** | Compare supported round-trip routes and record observations. |
 
-The build writes `out/`, `dist/client/` and `dist/server/index.js`. Generated output,
-Worker declarations, local databases and development notes are excluded from Git.
+## Transparent by design
 
-## Architecture
+A useful trading tool should make its assumptions visible.
 
-```text
-src/app/          Next.js routes, metadata and global styles
-src/components/   Wallet, markets, planner, lending and research interfaces
-src/lib/          Domain models, quote assessment and transaction validation
-server/           Worker routing, upstream reads and protocol services
-db/               Drizzle request-budget schema
-drizzle/          Versioned D1 migrations
-tests/            Validation, transaction, caching, planner and PWA regressions
-scripts/          Local development, test and build runners
-public/           Runtime artwork, fonts, asset logos and PWA resources
-```
+- **Your wallet stays in control.** The backend holds no private keys. Your wallet
+  signs and submits each approval or transaction.
+- **Quotes carry context.** Source timestamps, expiry, coverage and unavailable
+  data remain visible. Missing market data is never filled with invented prices.
+- **Costs are explicit.** Pool quotes include pool fees and price impact. Network
+  and approval costs are separate; a positive quoted surplus is not realized profit.
+- **The implementation is inspectable.** Amount handling, route assessment and
+  transaction checks live alongside the interface in this repository.
 
-The frontend uses React, TanStack Query, Radix Dialog and viem. The API uses
-Cloudflare Workers, D1, Zod and Drizzle. Token identity comes from the official
-registry and chain-specific contracts, rather than ticker matches alone.
+Local demo portfolios let contributors explore the product without connecting a
+wallet. Their holdings are fictional, their market quotes are live, and transaction
+execution is disabled. An installable web app brings the workspace to mobile.
 
-### API surface
+## Where we want to take it
 
-All API routes are reads. The Worker exposes no signing or broadcast endpoint.
+Our thesis is that the lasting value of a tokenized-equity interface lies in helping
+people make and revisit position decisions. We want Spreadline to become a workspace
+traders return to before entering, adjusting or exiting a position.
 
-| Routes | Purpose |
-| --- | --- |
-| `/api/health`, `/api/network` | Service and chain status |
-| `/api/catalog`, `/api/prices`, `/api/corporate-actions` | Issuer market data |
-| `/api/pools`, `/api/quote`, `/api/swap-quote` | Pool discovery and route quotes |
-| `/api/portfolio`, `/api/planner-position` | Address-specific balances |
-| `/api/position-plan` | Independent quotes at three position sizes |
-| `/api/trade-plan` | Balance, allowance and swap preparation |
-| `/api/lending/markets`, `/api/lending/vaults`, `/api/lending/history` | Lending research |
-| `/api/lending/positions`, `/api/lending/position`, `/api/lending/plan` | Position discovery and transaction preparation |
+The next priority is **validating the planner with traders**: whether it answers a
+real sizing question, fits their workflow and earns repeated use.
 
-Inputs are validated before provider calls. Reads are bounded and rate-limited.
-Cached public data retains its original timestamps; wallet reads and transaction
-plans are excluded from public response caching. Provider failures remain visible.
+From that foundation, directions to explore include:
 
-## Execution and data limits
+- **Position monitoring:** revisit a saved plan as liquidity and quotes change.
+- **Execution analysis:** compare planned outcomes with confirmed transactions.
+- **Broader coverage:** evaluate additional routes and venues with explicit coverage.
+- **Professional workflows:** investigate portfolio tools and data integrations
+  that active traders would value enough to pay for.
 
-- The app targets **Robinhood Chain mainnet (4663)**. A connected real wallet can
-  submit real transactions. Review the account, network, token and amount.
-- Quotes compare USDG pairs across four Uniswap V3 fee tiers. They do not cover
-  every venue or split route, and an observed output is not a guaranteed fill.
-- The planner compares independent alternative sizes, not sequential trades.
-  Quoted output includes pool fees and price impact; network and approval costs
-  are separate. Incomplete or expired comparisons do not highlight a size.
-- Issuer USD reference prices and pool prices denominated in USDG are different
-  observations. Missing data is not replaced with fabricated market values.
-- Transactions require explicit wallet confirmation. A receipt, rather than a
-  local success message, establishes confirmation. This project has no keeper or
-  automated arbitrage executor.
-- Lending rates are variable. The interface distinguishes supply APY, liquidity,
-  protocol warnings and unavailable observations.
+These are product directions to validate, not shipped features or established
+revenue streams. The current implementation provides a working foundation for that
+learning. Commercial demand and product-market fit remain to be established.
 
-This is an experimental implementation, not an audited trading system. Tests cover
-validation, transaction encoding, mocked wallet flows and data handling. Funded
-swaps and lending flows have not been verified end to end. Mobile installation and
-wallet behavior also need testing on physical devices.
+## Build with us
 
-## Hosting
+Spreadline is being developed in the open. We welcome traders who can challenge the
+workflow, developers who care about financial software, and collaborators interested
+in the tools around tokenized equities.
 
-The project builds a static Next.js frontend and an ESM Cloudflare Worker. Local
-development and production preview are supported by the included scripts.
+Try a demo portfolio, inspect the planner, or contribute a focused improvement.
+Product feedback is especially useful when it describes a real decision and what
+information was missing.
 
-For your own deployment, configure a D1 database and its migrations, the `ASSETS`
-binding, and a server-side `ROBINHOOD_RPC_URL`. The database ID in `wrangler.jsonc`
-is a local placeholder. Configure your own resources before deploying.
+**[Get started and contribute →](CONTRIBUTING.md)**
 
-Set `NEXT_PUBLIC_SITE_URL` to your trusted public origin at build time for social
-metadata; it defaults to localhost. Building or running the test suite does not
-deploy the app. Existing private hosting configuration is not part of this repo.
+Built with **Next.js, React, viem and Cloudflare Workers**, with integrations for
+**Robinhood Chain, Uniswap V3 and Morpho**. These integrations do not imply partnership
+or endorsement.
 
-## Contributing
+---
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the development and review workflow.
-Keep changes focused, include relevant validation, and preserve the distinction
-between live observations, assumptions and simulated holdings.
+**Project stage:** experimental. Real-wallet paths target mainnet, but funded swap
+and lending flows have not been verified end to end, and the system has not been
+audited. Automated arbitrage execution is not implemented. See the
+[execution limits](CONTRIBUTING.md#execution-and-data-limits) before using a real wallet.
 
-## Asset notices
-
-Third-party marks and fonts have separate ownership and licensing from the
-application. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md), the bundled font
-license and the logo source manifests. Referenced organizations do not endorse
-this project.
+**Licensing:** a project license has not yet been selected. Third-party fonts and
+marks retain their own rights; see [asset notices](THIRD_PARTY_NOTICES.md).
