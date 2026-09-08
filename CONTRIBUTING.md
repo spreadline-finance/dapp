@@ -130,7 +130,9 @@ binding, and a server-side `ROBINHOOD_RPC_URL`. The database ID in `wrangler.jso
 is a local placeholder. Configure your own resources before deploying.
 
 Set `NEXT_PUBLIC_SITE_URL` to your trusted public origin at build time for social
-metadata; it defaults to localhost. Building or running the test suite does not
+metadata; it defaults to `https://spredline.vercel.app`. Production builds reject
+localhost origins. Production pages allow indexing; development and Vercel preview
+builds retain `noindex, nofollow`. Building or running the test suite does not
 deploy the app. Existing private hosting configuration is not part of this repo.
 
 

@@ -1,19 +1,22 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { PwaProvider } from "@/components/pwa";
-const siteOrigin = new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://127.0.0.1:3000");
-if (!["http:", "https:"].includes(siteOrigin.protocol) || siteOrigin.username || siteOrigin.password) throw new Error("NEXT_PUBLIC_SITE_URL must be an HTTP(S) site origin without credentials.");
-const title = "Spreadline — Markets, trading & lending";
-const description = "Research Stock Token markets, trade with your wallet, and manage Morpho lending on Robinhood Chain.";
+import { siteOrigin, title, description, openGraph } from "@/lib/site-metadata";
+const indexable = process.env.NODE_ENV === "production" && process.env.VERCEL_ENV !== "preview";
 export const metadata: Metadata = {
-  metadataBase: new URL(siteOrigin.origin),
+  metadataBase: siteOrigin,
   title, description, applicationName: "Spreadline",
   appleWebApp: { capable: true, statusBarStyle: "default", title: "Spreadline" },
-  icons: { apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" }] },
+  alternates: { canonical: "/" },
+  icons: { icon: [
+    { url: "/icon.svg", type: "image/svg+xml" },
+    { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+    { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+  ], apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" }] },
   formatDetection: { telephone: false },
-  openGraph: { type: "website", locale: "en_US", siteName: "Spreadline", title, description, images: [{ url: "/og.png", width: 1200, height: 630, alt: "Spreadline — Markets. Lending. In your hands. Robinhood Chain." }] },
+  openGraph: { ...openGraph, url: "/" },
   twitter: { card: "summary_large_image", title, description, images: ["/og.png"] },
-  robots: { index: false, follow: false },
+  robots: { index: indexable, follow: indexable },
 };
 export const viewport: Viewport = {
   width: "device-width", initialScale: 1, viewportFit: "cover",
