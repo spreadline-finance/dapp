@@ -48,26 +48,27 @@ That workflow connects the rest of the workspace:
 | **Lending** | Explore Morpho markets and V2 vaults, inspect rates and manage positions. |
 | **Arbitrage research** | Compare supported round-trip routes and record observations. |
 | **Desk & earn** | Inspect live pools, follow a verified USDG strategy vault, and manage capital and reward claims once launched. |
-| **Token rewards** | Receive a share of the Pons coin's collected creator fees, inspect distributions, and claim unpaid allocations. |
+| **Token rewards** | Track holdings, the 75% holder fee allocation and automatic wallet payouts scheduled every 15 minutes. |
 
 The new [Desk & earn module](DESK.md) includes a locally tested atomic trading vault,
 75/25 reward accounting, wallet actions and an operator runner. The default vault
 is unlaunched: live research works, while deposits and earnings require a reviewed,
 verified, funded deployment. No return is guaranteed.
 
-The separate [Token rewards system](REWARDS.md) routes Pons creator fees into a
-funded distributor, snapshots eligible coin holders, publishes auditable proofs,
-and pays holders automatically through a persistent operator. Owners can change
-the holder/developer/treasury split, payment interval and payout wallets onchain.
-Pons creator tax and the payout asset are selected at coin launch. The repository
-includes launch preparation/execution, administration, proof storage and the
-operator; a real coin and funded deployments must be configured before payouts start.
+The [Token rewards dashboard](REWARDS.md) reads public reports from a separately
+hosted private keeper. The coin launches on Pons with a fee-receiving wallet;
+75% of fees actually collected is allocated proportionally to eligible holders,
+and 25% stays with the receiver. Payout runs are scheduled every 15 minutes and
+require collected fees and sufficient gas. This dapp has no reward signing key,
+keeper runtime, custom fee distributor, or holder-claim transactions. It shows
+reported allocations separately from confirmed transfers. The fee wallet and
+keeper control payment execution; this is not a contract-enforced claim system.
 
 ## Transparent by design
 
 A useful trading tool should make its assumptions visible.
 
-- **Your wallet stays in control.** The backend holds no private keys. Your wallet
+- **Your trading wallet stays in control.** This dapp backend holds no private keys. Your wallet
   signs and submits each approval or transaction.
 - **Quotes carry context.** Source timestamps, expiry, coverage and unavailable
   data remain visible. Missing market data is never filled with invented prices.
