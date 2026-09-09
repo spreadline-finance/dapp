@@ -15,6 +15,8 @@ export type RewardsReport = {
   intervalSeconds: 30 | 900;
   /** Live service capability; absent on older reports. It does not refresh ledger accounting. */
   executionMode?: "manual" | "automatic" | "report-only";
+  /** Configured per-wallet threshold in reward-asset base units; absent on older services. */
+  minimumPayout?: string;
   status: "ready" | "paused" | "attention";
   statusReason: "none" | "paused" | "insufficient-funds" | "gas-unavailable" | "rpc-unavailable" | "payment-pending" | "operator-attention";
   updatedAt: string;

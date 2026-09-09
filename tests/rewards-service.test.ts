@@ -274,6 +274,29 @@ test("execution mode accepts legacy reports, rejects arbitrary modes and keeps w
   assert.equal((await createRewardsService(config, mismatch.fetcher).snapshot(alice)).status, "unavailable");
 });
 
+test("minimum payouts preserve exact asset units and older reports do not invent a threshold", async () => {
+  assert.equal(validateRewardsReport(document()).minimumPayout, undefined);
+  for (const [rewardAsset, minimumPayout] of [
+    [{ address: zeroAddress, symbol: "ETH", decimals: 18 }, "1000000000"],
+    [{ address: zeroAddress, symbol: "ETH", decimals: 18 }, "1"],
+    [{ address: USDG, symbol: "USDG", decimals: 6 }, "10000"],
+  ] as const) {
+    const mock = mockReports(url => ({ ...(url.searchParams.has("wallet") ? personal() : document()), rewardAsset, minimumPayout }));
+    const result = await createRewardsService(config, mock.fetcher).snapshot(alice);
+    assert.equal(result.status, "reported");
+    assert.equal(result.report?.minimumPayout, minimumPayout);
+    assert.equal(result.report?.rewardAsset.decimals, rewardAsset.decimals);
+  }
+  for (const minimumPayout of ["0", "-1", "+1", "01", "1.5", "1e9", "", String(1n << 256n), 1, null]) {
+    assert.throws(() => validateRewardsReport({ ...document(), minimumPayout }));
+  }
+});
+
+test("a configuration change during wallet lookup cannot display an inconsistent minimum payout", async () => {
+  const mock = mockReports(url => ({ ...(url.searchParams.has("wallet") ? personal() : document()), minimumPayout: url.searchParams.has("wallet") ? "1000000000" : "2000000000" }));
+  assert.equal((await createRewardsService(config, mock.fetcher).snapshot(alice)).status, "unavailable");
+});
+
 test("manual and reporting-only modes never promise a scheduled distribution or erase pending totals", () => {
   const now = Date.now(), report = document(now);
   const before = distributionTotals(report);
