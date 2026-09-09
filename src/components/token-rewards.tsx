@@ -45,7 +45,10 @@ function AddressLink({ address, label }: { address: string; label?: string }) {
   return <a className="rewards-address" href={`${EXPLORER}/address/${address}`} target="_blank" rel="noreferrer" title={address}>{label ?? shortAddress(address)}<ArrowUpRight size={12}/></a>;
 }
 function RewardsIntroduction({ report }: { report?: RewardsReport }) {
-  if (report) return <header className="rewards-page-header"><div className="rewards-page-title"><SpreadTokenIcon size={40}/><div><span>HOLDER REWARDS · {report.tokenSymbol}</span><h1>Token rewards</h1></div></div><p>Your share of creator fees, sent directly to your wallet.</p></header>;
+  if (report) return <header className="rewards-page-header">
+    <div className="rewards-header-copy"><div className="rewards-page-title"><SpreadTokenIcon size={40}/><div><span>HOLDER REWARDS · {report.tokenSymbol}</span><h1>Token rewards</h1></div></div><p>Your share of creator fees, sent directly to your wallet.</p></div>
+    <div className="rewards-header-art" aria-hidden="true"><Image src="/artwork/spread-rewards.webp" width={1536} height={1024} alt="" loading="eager" unoptimized/></div>
+  </header>;
   return <section className="rewards-brand-hero" aria-labelledby="spread-rewards-title">
     <div className="rewards-brand-copy">
       <div className="rewards-token-identity"><SpreadTokenIcon size={48}/><span><strong>SPREAD</strong><span>Spreadline token rewards</span></span></div>
