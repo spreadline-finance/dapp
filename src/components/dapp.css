@@ -1334,6 +1334,12 @@
 .wallet-list > button:disabled {
   opacity: 0.5;
 }
+.wallet-switch-list {
+  margin: 18px 0;
+}
+.wallet-switch-list > p {
+  margin: 0;
+}
 .wallet-avatar {
   display: grid;
   place-items: center;

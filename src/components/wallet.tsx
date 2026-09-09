@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { isAddress, type Address } from "viem";
 import * as Dialog from "@radix-ui/react-dialog";
-import { ArrowUpRight, Check, LogOut, Wallet, X } from "lucide-react";
+import { ArrowLeftRight, ArrowUpRight, Check, LogOut, Wallet, X } from "lucide-react";
 import { CHAIN_ID, EXPLORER, PUBLIC_RPC } from "@/lib/market-types";
 import { shortAddress } from "@/lib/live-api";
 import { canActivateDemo, isLocalDemoHost, type DemoWallet } from "@/lib/demo-wallet";
@@ -41,6 +41,7 @@ export function useWallet() {
   const [demoWallet, setDemoWallet] = useState<DemoWallet | null>(null);
   const generation = useRef(0);
   const session = useRef(0);
+  const accountRevision = useRef(0);
   const unsubscribe = useRef<(() => void) | null>(null);
   useEffect(() => {
     // This literal build guard removes the fixture import from production.
@@ -145,6 +146,7 @@ export function useWallet() {
     const accountsChanged = (value: unknown) => {
       if (session.current !== walletSession) return;
       revision.accounts++;
+      accountRevision.current++;
       setAccount(readAccount(value));
     };
     const chainChanged = (value: unknown) => {
@@ -190,6 +192,34 @@ export function useWallet() {
           "Wallet connection was declined or could not be completed. You can retry.",
         );
       }
+    } finally {
+      if (id === generation.current) setPending(false);
+    }
+  }
+  async function switchAccount() {
+    if (demoWallet || !selected || pending) return;
+    const id = ++generation.current;
+    const wallet = selected;
+    setError("");
+    setPending(true);
+    try {
+      await wallet.provider.request({
+        method: "wallet_requestPermissions",
+        params: [{ eth_accounts: {} }],
+      });
+      if (id !== generation.current) return;
+      const revision = accountRevision.current;
+      const accounts = await wallet.provider.request({ method: "eth_accounts" });
+      if (id !== generation.current || revision !== accountRevision.current) return;
+      setAccount(readAccount(accounts));
+    } catch (cause) {
+      if (id !== generation.current) return;
+      const code = cause && typeof cause === "object" && "code" in cause ? cause.code : null;
+      setError(code === 4001
+        ? "Account change cancelled. Your current account is still connected."
+        : code === -32601 || code === 4200
+          ? "Choose another account in your wallet extension. Spreadline updates when your wallet changes accounts."
+          : "Account change could not be completed. Try again or choose another account in your wallet extension.");
     } finally {
       if (id === generation.current) setPending(false);
     }
@@ -252,6 +282,7 @@ export function useWallet() {
     pending,
     connect,
     switchNetwork,
+    switchAccount,
     disconnect,
   };
 }
@@ -303,6 +334,26 @@ export function WalletButton({ wallet }: { wallet: WalletState }) {
                   <ArrowUpRight size={18} />
                 </a>
               </div>
+              <button
+                className="button button-secondary"
+                disabled={wallet.pending}
+                onClick={() => void wallet.switchAccount()}
+              >
+                <ArrowLeftRight size={14} />
+                {wallet.pending ? "Waiting for wallet…" : "Switch account"}
+              </button>
+              {wallet.wallets.some((item) => item.provider !== wallet.selected?.provider) && (
+                <div className="wallet-list wallet-switch-list" aria-label="Switch wallet">
+                  <p>Use another wallet</p>
+                  {wallet.wallets.filter((item) => item.provider !== wallet.selected?.provider).map((item) => (
+                    <button key={item.info.uuid} disabled={wallet.pending} onClick={() => void wallet.connect(item)}>
+                      <span className="wallet-avatar">{item.info.name.slice(0, 1)}</span>
+                      {item.info.name}
+                      <ArrowUpRight size={17} />
+                    </button>
+                  ))}
+                </div>
+              )}
               {wallet.chainId !== CHAIN_ID && (
                 <button
                   className="button button-primary"

@@ -192,3 +192,48 @@ test("fractional Portfolio action passes its exact amount into the rendered plan
     assert.equal(requests, 0);
   } finally { harness.unmount(); }
 });
+
+test("switch account requests account permission and reads the new account without signing", async () => {
+  const harness = await mountWallet("production"), real = providerFixture();
+  try {
+    harness.render(); const connecting = harness.render().connect(real.option); real.release(); await connecting;
+    const calls: { method: string; params?: unknown[] }[] = [];
+    const next = "0x2222222222222222222222222222222222222222";
+    real.option.provider.request = async (request) => { calls.push(request); return request.method === "eth_accounts" ? [next] : []; };
+    await harness.render().switchAccount();
+    const wallet = harness.render();
+    assert.equal(wallet.account, next); assert.equal(wallet.pending, false); assert.equal(wallet.error, "");
+    assert.deepEqual(calls.map(call => call.method), ["wallet_requestPermissions", "eth_accounts"]);
+    assert.equal(JSON.stringify(calls[0].params), '[{"eth_accounts":{}}]');
+  } finally { harness.unmount(); }
+});
+
+test("declined or unsupported account changes preserve the current connection", async () => {
+  for (const code of [4001, 4200, -32601]) {
+    const harness = await mountWallet("production"), real = providerFixture();
+    try {
+      harness.render(); const connecting = harness.render().connect(real.option); real.release(); await connecting;
+      real.option.provider.request = async () => { throw { code }; };
+      await harness.render().switchAccount();
+      const wallet = harness.render();
+      assert.equal(wallet.account, "0x1111111111111111111111111111111111111111");
+      assert.equal(wallet.selected?.provider, real.option.provider); assert.equal(wallet.pending, false);
+      assert.match(wallet.error, code === 4001 ? /cancelled/ : /wallet extension/);
+    } finally { harness.unmount(); }
+  }
+});
+
+test("late account permission replies cannot reconnect a disconnected wallet", async () => {
+  const harness = await mountWallet("production"), real = providerFixture();
+  try {
+    harness.render(); const connecting = harness.render().connect(real.option); real.release(); await connecting;
+    let release!: () => void;
+    const calls: string[] = [];
+    real.option.provider.request = async ({ method }) => { calls.push(method); await new Promise<void>(resolve => { release = resolve; }); return []; };
+    const switching = harness.render().switchAccount();
+    assert.equal(harness.render().pending, true);
+    harness.render().disconnect(); release(); await switching;
+    assert.equal(harness.render().account, null); assert.equal(harness.render().pending, false);
+    assert.deepEqual(calls, ["wallet_requestPermissions"]);
+  } finally { harness.unmount(); }
+});

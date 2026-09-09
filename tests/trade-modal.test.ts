@@ -120,7 +120,7 @@ async function mountModal(options: { connected?: boolean; amount?: string; slipp
     throw new Error(`Unexpected mock wallet request: ${method}`);
   } };
   const connectedWallet = (trader = account): WalletState => ({ wallets: [], selected: { info: { uuid: "test-provider", name: "Test wallet" }, provider }, account: trader, chainId: CHAIN_ID,
-    demoWallets: [], demoWallet: null, selectDemoWallet: () => false, error: "", pending: false, connect: async () => {}, switchNetwork: async () => {}, disconnect: () => {} });
+    demoWallets: [], demoWallet: null, selectDemoWallet: () => false, error: "", pending: false, connect: async () => {}, switchNetwork: async () => {}, switchAccount: async () => {}, disconnect: () => {} });
   let props: ModalProps = { asset, now, wallet: options.connected === false ? { ...connectedWallet(), account: null, selected: null, chainId: null } : connectedWallet(), open: true,
     side: "buy", amount: options.amount ?? "100", slippage: options.slippage ?? 50, initialQuote: options.initialQuote,
     onOpenChange: (open) => { props = { ...props, open }; }, onDraftChange: (draft) => { props = { ...props, ...draft }; } };
