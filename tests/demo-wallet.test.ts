@@ -52,7 +52,7 @@ function walletBundle(environment: string) {
   if (!result) {
     result = build({ stdin: { contents: 'export { useWallet } from "./src/components/wallet"; export { walletSubmissions } from "./src/lib/wallet-submission";', resolveDir: process.cwd(), loader: "ts" }, bundle: true, write: false, platform: "node", format: "cjs", packages: "external", loader: { ".css": "empty" }, define: { "process.env.NODE_ENV": JSON.stringify(environment) }, plugins: [{ name: "wallet-hook-harness", setup(builder) {
       builder.onResolve({ filter: /^react$/ }, (args) => args.importer.endsWith("/components/wallet.tsx") ? { path: "hooks", namespace: "test" } : undefined);
-      builder.onLoad({ filter: /.*/, namespace: "test" }, () => ({ contents: "export const {useState,useRef,useEffect} = globalThis.testHooks;", loader: "js" }));
+      builder.onLoad({ filter: /.*/, namespace: "test" }, () => ({ contents: "export const {useState,useRef,useEffect,useCallback} = globalThis.testHooks;", loader: "js" }));
     } }] }).then((output) => output.outputFiles[0].text);
     bundles.set(environment, result);
   }
@@ -64,9 +64,15 @@ function walletBundle(environment: string) {
 async function mountWallet(environment = "development", hostname = "localhost") {
   const state: unknown[] = [], refs: { current: unknown }[] = [];
   const effects = new Map<number, { deps: unknown[]; cleanup?: () => void }>();
+  const callbacks = new Map<number, { deps: unknown[]; value: unknown }>();
   let cursor = 0, alive = true;
   let queued: (() => void)[] = [];
   const testHooks = {
+    useCallback(value: unknown, deps: unknown[]) {
+      const index = cursor++, previous = callbacks.get(index);
+      if (previous && deps.length === previous.deps.length && deps.every((value, i) => Object.is(value, previous.deps[i]))) return previous.value;
+      callbacks.set(index, { deps, value }); return value;
+    },
     useState(initial: unknown) {
       const index = cursor++;
       if (!(index in state)) state[index] = typeof initial === "function" ? initial() : initial;
@@ -79,8 +85,10 @@ async function mountWallet(environment = "development", hostname = "localhost") 
       queued.push(() => { previous?.cleanup?.(); effects.set(index, { deps, cleanup: effect() || undefined }); });
     },
   };
+  const storage = new Map<string, string>();
   const timers = new Set<ReturnType<typeof setTimeout>>();
   const window = Object.assign(new EventTarget(), { location: { hostname },
+    localStorage: { getItem: (key: string) => storage.get(key) ?? null, setItem: (key: string, value: string) => { storage.set(key, value); }, removeItem: (key: string) => { storage.delete(key); } },
     setTimeout: (callback: () => void, delay: number) => { const id = setTimeout(callback, delay); timers.add(id); return id; },
     clearTimeout,
   });
@@ -90,7 +98,7 @@ async function mountWallet(environment = "development", hostname = "localhost") 
   const render = () => { cursor = 0; const value = bundleModule.exports.useWallet(); const work = queued; queued = []; work.forEach((effect) => effect()); return value; };
   const flush = async () => { for (let i = 0; i < 4; i++) await Promise.resolve(); return render(); };
   const unmount = () => { alive = false; effects.forEach((effect) => effect.cleanup?.()); timers.forEach(clearTimeout); };
-  const remount = () => { unmount(); state.length = 0; refs.length = 0; effects.clear(); timers.clear(); queued = []; alive = true; return render(); };
+  const remount = () => { unmount(); state.length = 0; refs.length = 0; effects.clear(); callbacks.clear(); timers.clear(); queued = []; alive = true; return render(); };
   return { render, flush, unmount, remount, window, submissions: bundleModule.exports.walletSubmissions };
 }
 
@@ -235,5 +243,63 @@ test("late account permission replies cannot reconnect a disconnected wallet", a
     harness.render().disconnect(); release(); await switching;
     assert.equal(harness.render().account, null); assert.equal(harness.render().pending, false);
     assert.deepEqual(calls, ["wallet_requestPermissions"]);
+  } finally { harness.unmount(); }
+});
+
+test("refresh restores the chosen EIP-6963 wallet using authorized accounts, despite a new provider UUID", async () => {
+  const harness = await mountWallet("production"), real = providerFixture();
+  const first = { ...real.option, info: { ...real.option.info, rdns: "com.example.wallet" } };
+  try {
+    harness.render(); const connecting = harness.render().connect(first); real.release(); await connecting;
+    assert.equal(harness.window.localStorage.getItem("spreadline.wallet.v1"), "rdns:com.example.wallet");
+    real.calls.length = 0;
+    harness.remount();
+    const unrelated = providerFixture();
+    harness.window.dispatchEvent(new CustomEvent("eip6963:announceProvider", { detail: unrelated.option }));
+    await harness.flush();
+    assert.equal(unrelated.calls.length, 0);
+    harness.window.dispatchEvent(new CustomEvent("eip6963:announceProvider", { detail: { ...first, info: { ...first.info, uuid: "new-page-uuid" } } }));
+    await harness.flush(); const wallet = await harness.flush();
+    assert.equal(wallet.account, "0x1111111111111111111111111111111111111111");
+    assert.equal(wallet.chainId, 4663); assert.equal(wallet.pending, false);
+    assert.deepEqual(real.calls, ["eth_accounts", "eth_chainId"]);
+    real.handlers.get("accountsChanged")!(["0x2222222222222222222222222222222222222222"]);
+    assert.equal(harness.render().account, "0x2222222222222222222222222222222222222222");
+    real.handlers.get("chainChanged")!("0x1");
+    assert.equal(harness.render().chainId, 1);
+  } finally { harness.unmount(); }
+});
+
+test("explicit disconnect survives refresh and does not reconnect an announced wallet", async () => {
+  const harness = await mountWallet("production"), real = providerFixture();
+  try {
+    harness.render(); const connecting = harness.render().connect(real.option); real.release(); await connecting;
+    harness.render().disconnect(); real.calls.length = 0;
+    harness.remount();
+    harness.window.dispatchEvent(new CustomEvent("eip6963:announceProvider", { detail: real.option }));
+    await harness.flush(); const wallet = await harness.flush();
+    assert.equal(wallet.account, null); assert.equal(real.calls.length, 0);
+    assert.equal(harness.window.localStorage.getItem("spreadline.wallet.v1"), null);
+  } finally { harness.unmount(); }
+});
+
+test("locked wallets cannot restore a cached account and delayed restores cannot undo disconnect", async () => {
+  const harness = await mountWallet("production"), real = providerFixture();
+  try {
+    harness.render(); const connecting = harness.render().connect(real.option); real.release(); await connecting;
+    real.option.provider.request = async ({ method }) => method === "eth_chainId" ? "0x1237" : [];
+    harness.remount();
+    harness.window.dispatchEvent(new CustomEvent("eip6963:announceProvider", { detail: real.option }));
+    await harness.flush(); let wallet = await harness.flush();
+    assert.equal(wallet.account, null); assert.equal(wallet.error, ""); assert.equal(wallet.pending, false);
+    let release!: (value: string[]) => void;
+    real.option.provider.request = async ({ method }) => method === "eth_chainId" ? "0x1237" : await new Promise<string[]>(resolve => { release = resolve; });
+    harness.remount();
+    harness.window.dispatchEvent(new CustomEvent("eip6963:announceProvider", { detail: real.option }));
+    await harness.flush();
+    harness.render().disconnect(); release(["0x1111111111111111111111111111111111111111"]);
+    wallet = await harness.flush();
+    assert.equal(wallet.account, null); assert.equal(wallet.selected, null); assert.equal(wallet.pending, false);
+    assert.equal(real.handlers.size, 0);
   } finally { harness.unmount(); }
 });

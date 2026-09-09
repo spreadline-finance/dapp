@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { isAddress, type Address } from "viem";
 import * as Dialog from "@radix-ui/react-dialog";
 import { ArrowLeftRight, ArrowUpRight, Check, LogOut, Wallet, X } from "lucide-react";
@@ -13,9 +13,22 @@ type Provider = {
   removeListener?: (event: string, handler: (value: unknown) => void) => void;
 };
 type WalletOption = {
-  info: { uuid: string; name: string };
+  info: { uuid: string; name: string; rdns?: string };
   provider: Provider;
 };
+const WALLET_PREFERENCE = "spreadline.wallet.v1";
+function walletIdentity(wallet: WalletOption): string {
+  return wallet.info.uuid === "injected" ? "injected" : wallet.info.rdns ? `rdns:${wallet.info.rdns}` : `name:${wallet.info.name}`;
+}
+function storedWallet(): string | null {
+  try { return window.localStorage.getItem(WALLET_PREFERENCE); } catch { return null; }
+}
+function rememberWallet(wallet: WalletOption | null) {
+  try {
+    if (wallet) window.localStorage.setItem(WALLET_PREFERENCE, walletIdentity(wallet));
+    else window.localStorage.removeItem(WALLET_PREFERENCE);
+  } catch { /* Storage restrictions must not block wallet access. */ }
+}
 function readAccount(value: unknown): Address | null {
   return Array.isArray(value) &&
     typeof value[0] === "string" &&
@@ -39,6 +52,7 @@ export function useWallet() {
   const [pending, setPending] = useState(false);
   const [demoWallets, setDemoWallets] = useState<readonly DemoWallet[]>([]);
   const [demoWallet, setDemoWallet] = useState<DemoWallet | null>(null);
+  const restoreAttempted = useRef(false);
   const generation = useRef(0);
   const session = useRef(0);
   const accountRevision = useRef(0);
@@ -78,6 +92,7 @@ export function useWallet() {
                 info: {
                   uuid: item.info.uuid,
                   name: item.info.name.slice(0, 80),
+                  rdns: typeof item.info.rdns === "string" && /^[a-z0-9.-]{1,200}$/i.test(item.info.rdns) ? item.info.rdns : undefined,
                 },
                 provider: item.provider,
               },
@@ -103,12 +118,15 @@ export function useWallet() {
     return () => {
       window.clearTimeout(timer);
       window.removeEventListener("eip6963:announceProvider", announce);
+      restoreAttempted.current = false;
       operationCounter.current++;
       sessionCounter.current++;
       unsubscribe.current?.();
     };
   }, []);
-  function disconnect() {
+  const disconnect = useCallback(() => {
+    restoreAttempted.current = true;
+    rememberWallet(null);
     generation.current++;
     session.current++;
     unsubscribe.current?.();
@@ -119,7 +137,7 @@ export function useWallet() {
     setError("");
     setPending(false);
     setDemoWallet(null);
-  }
+  }, []);
   function selectDemoWallet(id: string) {
     if (!canActivateDemo(process.env.NODE_ENV, window.location.hostname, pending)) {
       if (process.env.NODE_ENV === "development" && isLocalDemoHost(window.location.hostname))
@@ -132,7 +150,8 @@ export function useWallet() {
     setDemoWallet(preset);
     return true;
   }
-  async function connect(wallet: WalletOption) {
+  const connect = useCallback(async (wallet: WalletOption, restore = false) => {
+    restoreAttempted.current = true;
     setDemoWallet(null);
     const id = ++generation.current;
     const walletSession = ++session.current;
@@ -166,7 +185,7 @@ export function useWallet() {
       wallet.provider.removeListener?.("disconnect", disconnected);
     };
     try {
-      await wallet.provider.request({ method: "eth_requestAccounts" });
+      if (!restore) await wallet.provider.request({ method: "eth_requestAccounts" });
       if (id !== generation.current) return;
       const before = { ...revision };
       const [accounts, chain] = await Promise.all([
@@ -180,6 +199,7 @@ export function useWallet() {
         setAccount(next);
       }
       if (before.chain === revision.chain) setChainId(readChain(chain));
+      rememberWallet(wallet);
     } catch {
       if (id === generation.current) {
         session.current++;
@@ -188,14 +208,19 @@ export function useWallet() {
         setSelected(null);
         setAccount(null);
         setChainId(null);
-        setError(
-          "Wallet connection was declined or could not be completed. You can retry.",
-        );
+        setError(restore ? "" : "Wallet connection was declined or could not be completed. You can retry.");
       }
     } finally {
       if (id === generation.current) setPending(false);
     }
-  }
+  }, [disconnect]);
+  useEffect(() => {
+    if (restoreAttempted.current) return;
+    const preferred = storedWallet();
+    if (!preferred) return;
+    const wallet = wallets.find(item => walletIdentity(item) === preferred);
+    if (wallet) void connect(wallet, true);
+  }, [wallets, connect]);
   async function switchAccount() {
     if (demoWallet || !selected || pending) return;
     const id = ++generation.current;
