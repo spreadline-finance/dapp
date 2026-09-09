@@ -35,6 +35,11 @@ function personal(address = alice, now = Date.now()): RewardsReport {
     receipts: [{ epochId: "1", amount: "1", transactionHash: hash, blockNumber: "105", confirmedAt: new Date(now - 1000).toISOString(), status: "confirmed" }] };
   return report;
 }
+function currentPersonal(address = alice, now = Date.now()): RewardsReport {
+  const report = personal(address, now);
+  report.wallet!.currentPosition = { blockNumber: "110", blockHash: hash, observedAt: new Date(now).toISOString(), eligibleWeight: "30", totalEligibleWeight: "40" };
+  return report;
+}
 function mockReports(make: (url: URL) => unknown = url => url.searchParams.has("wallet") ? personal(url.searchParams.get("wallet") as Address) : document()) {
   const calls: { url: URL; init: RequestInit | undefined }[] = [];
   const fetcher: typeof fetch = async (input, init) => {
@@ -220,7 +225,7 @@ test("30-second test reports are accepted without changing the fee policy", asyn
   assert.equal(result.report?.holderBps, 7500);
 });
 
-import { distributionCountdown, estimatedAdditionalReward, rewardsServiceMessage } from "../src/lib/rewards-preview";
+import { currentRewardPosition, distributionCountdown, estimatedAdditionalReward, rewardsServiceMessage } from "../src/lib/rewards-preview";
 
 test("distribution countdown ticks and never invents another schedule when overdue or blocked", () => {
   const now = Date.now(), report = document(now);
@@ -238,17 +243,89 @@ test("distribution countdown ticks and never invents another schedule when overd
   assert.equal(distributionCountdown(report, now, false), "Awaiting schedule");
 });
 
-test("reward estimate separates pending allocations and respects cumulative rounding and missing snapshots", () => {
-  const report = personal();
+test("reward estimate uses current ownership and separates previously earned allocations", () => {
+  const now = Date.now(), report = currentPersonal(alice, now);
   // 75% of 7 minus 75% of 4 = 2 additional raw units; wallet owns 3/4.
-  assert.equal(estimatedAdditionalReward(report, false), "1");
+  assert.equal(estimatedAdditionalReward(report, false, now), "1");
   assert.equal(report.wallet!.pending, "2");
-  assert.equal(estimatedAdditionalReward(report, true), null);
-  report.wallet!.snapshotEpochId = null;
-  assert.equal(estimatedAdditionalReward(report, false), null);
-  report.wallet!.snapshotEpochId = "2";
+  assert.equal(estimatedAdditionalReward(report, true, now), null);
+  // A direct transfer recipient needs no prior purchase or snapshot allocation.
   report.wallet!.eligibleWeight = "0";
-  assert.equal(estimatedAdditionalReward(report, false), "0");
+  assert.equal(estimatedAdditionalReward(report, false, now), "1");
+  report.wallet!.snapshotEpochId = null;
+  report.wallet!.totalEligibleWeight = "0";
+  assert.equal(estimatedAdditionalReward(report, false, now), "1", "The first allocation can be estimated before a snapshot exists.");
+  // Selling or transferring all tokens removes the *future* share only.
+  report.wallet!.currentPosition!.eligibleWeight = "0";
+  report.wallet!.tokenBalance = "0";
+  assert.equal(estimatedAdditionalReward(report, false, now), "0");
+  assert.equal(report.wallet!.pending, "2");
+  assert.equal(report.wallet!.earned, "3");
+  assert.equal(report.wallet!.paid, "1");
+});
+
+test("current shares expire separately from accounting and never fall back to snapshot weights", () => {
+  const now = Date.now(), report = currentPersonal(alice, now);
+  assert.ok(currentRewardPosition(report, now));
+  assert.ok(currentRewardPosition(report, now + 60_000));
+  assert.equal(currentRewardPosition(report, now + 60_001), null);
+  assert.equal(estimatedAdditionalReward(report, false, now + 60_001), null);
+  assert.equal(estimatedAdditionalReward(report, false, 0), null);
+  report.updatedAt = new Date(now - 30 * 60_000).toISOString();
+  assert.ok(currentRewardPosition(report, now), "Current ownership can refresh while manual accounting is old.");
+  assert.equal(estimatedAdditionalReward(report, true, now), null, "Fresh ownership alone cannot refresh financial accounting.");
+  report.wallet!.currentPosition!.observedAt = new Date(now + 10_001).toISOString();
+  assert.equal(currentRewardPosition(report, now), null);
+  delete report.wallet!.currentPosition;
+  assert.equal(estimatedAdditionalReward(report, false, now), null);
+  assert.equal(report.wallet!.eligibleWeight, "3");
+});
+
+test("current confirmed positions accept transferred holders and sellers without rewriting snapshot entitlements", () => {
+  const transferred = currentPersonal(bob);
+  transferred.wallet!.eligibleWeight = "0";
+  transferred.wallet!.earned = "0"; transferred.wallet!.paid = "0"; transferred.wallet!.pending = "0"; transferred.wallet!.receipts = [];
+  const result = validateRewardsReport(transferred);
+  assert.equal(result.wallet!.currentPosition!.eligibleWeight, "30");
+  assert.equal(result.wallet!.eligibleWeight, "0");
+  const sold = currentPersonal();
+  sold.wallet!.tokenBalance = "0"; sold.wallet!.currentPosition!.eligibleWeight = "0";
+  const seller = validateRewardsReport(sold).wallet!;
+  assert.equal(seller.eligibleWeight, "3");
+  assert.equal(seller.pending, "2");
+  assert.equal(seller.receipts.length, 1);
+});
+
+test("current positions must use the same block, exact eligible balance and denominator", () => {
+  const mutations: ((report: RewardsReport) => void)[] = [
+    report => { report.wallet!.currentPosition!.blockNumber = "109"; },
+    report => { report.wallet!.currentPosition!.eligibleWeight = "29"; },
+    report => { report.wallet!.currentPosition!.totalEligibleWeight = "29"; },
+    report => { report.exclusions.push({ address: alice, reason: "Excluded address" }); },
+    report => { Object.assign(report.wallet!.currentPosition!, { internalState: "not-public" }); },
+    report => { Object.assign(report.wallet!.currentPosition!, { blockHash: "0x0" }); },
+    report => { Object.assign(report.wallet!.currentPosition!, { observedAt: "invalid" }); },
+  ];
+  for (const mutate of mutations) { const report = currentPersonal(); mutate(report); assert.throws(() => validateRewardsReport(report)); }
+  const excluded = currentPersonal();
+  excluded.exclusions.push({ address: alice, reason: "Excluded address" });
+  excluded.wallet!.currentPosition!.eligibleWeight = "0";
+  assert.equal(validateRewardsReport(excluded).wallet!.currentPosition!.eligibleWeight, "0");
+  assert.equal(estimatedAdditionalReward(excluded, false), "0");
+  excluded.wallet!.currentPosition!.totalEligibleWeight = "0";
+  assert.equal(estimatedAdditionalReward(validateRewardsReport(excluded), false), null, "No eligible supply means no allocatable current share.");
+});
+
+test("future current-position observations are rejected even when financial accounting is current", async () => {
+  const now = Date.now();
+  const mock = mockReports(url => {
+    const report = url.searchParams.has("wallet") ? currentPersonal(alice, now) : document(now);
+    if (report.wallet) report.wallet.currentPosition!.observedAt = new Date(now + 120_000).toISOString();
+    return report;
+  });
+  const result = await createRewardsService(config, mock.fetcher).snapshot(alice);
+  assert.equal(result.status, "unavailable");
+  assert.equal(result.report, null);
 });
 
 import { distributionTotals } from "../src/lib/rewards-preview";

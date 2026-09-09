@@ -63,6 +63,7 @@ export function createRewardsService(config: RewardsConfig, fetcher: typeof fetc
         }
         const report = validateRewardsReport(await boundedJSON(response));
         if (Date.parse(report.updatedAt) > Date.now() + 60_000) throw new Error("Report is dated in the future.");
+        if (report.wallet?.currentPosition && Date.parse(report.wallet.currentPosition.observedAt) > Date.now() + 60_000) throw new Error("Current position is dated in the future.");
         if (page && report.epochs.some(epoch => BigInt(epoch.id) >= BigInt(page))) throw new Error("Report pagination differs from request.");
         if (walletAddress ? !report.wallet || report.wallet.address.toLowerCase() !== walletAddress.toLowerCase() : report.wallet !== null) throw new Error("Report wallet differs from request.");
         return report;

@@ -51,6 +51,15 @@ export type RewardReportEpoch = {
 export type RewardReportWallet = {
   address: Address;
   tokenBalance: string;
+  /** Confirmed current holdings, independently timestamped from financial accounting. */
+  currentPosition?: {
+    blockNumber: string;
+    blockHash: Hex;
+    observedAt: string;
+    eligibleWeight: string;
+    totalEligibleWeight: string;
+  };
+  /** These weights describe the latest allocation snapshot, not current holdings. */
   eligibleWeight: string;
   totalEligibleWeight: string;
   snapshotEpochId: string | null;

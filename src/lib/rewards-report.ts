@@ -21,6 +21,7 @@ const epochSchema = z.object({
 }).strict();
 const walletSchema = z.object({
   address: nonzeroAddress, tokenBalance: raw, eligibleWeight: raw, totalEligibleWeight: raw,
+  currentPosition: z.object({ blockNumber: positiveRaw, blockHash: hash, observedAt: timestamp, eligibleWeight: raw, totalEligibleWeight: raw }).strict().optional(),
   snapshotEpochId: id.nullable(), earned: raw, paid: raw, pending: raw,
   receipts: z.array(z.object({ epochId: id, amount: positiveRaw, transactionHash: hash, blockNumber: positiveRaw, confirmedAt: timestamp.nullable(), status: z.literal("confirmed") }).strict()).max(50),
 }).strict();
@@ -74,6 +75,13 @@ export function validateRewardsReport(value: unknown): RewardsReport {
   require(report.nextCursor === null || report.epochs.length > 0 && report.nextCursor === report.epochs.at(-1)?.id, "exclusive pagination cursor");
   if (report.wallet) {
     const wallet = report.wallet;
+    if (wallet.currentPosition) {
+      const position = wallet.currentPosition;
+      const excluded = report.exclusions.some(entry => same(entry.address, wallet.address));
+      require(position.blockNumber === report.balanceAsOfBlock, "current position and token balance blocks differ");
+      require(BigInt(position.eligibleWeight) <= BigInt(position.totalEligibleWeight), "current position exceeds eligible supply");
+      require(position.eligibleWeight === (excluded ? "0" : wallet.tokenBalance), "current position differs from eligible token balance");
+    }
     require(BigInt(wallet.earned) === BigInt(wallet.paid) + BigInt(wallet.pending), "wallet paid and outstanding rewards");
     require(BigInt(wallet.earned) <= allocated && BigInt(wallet.paid) <= paid && BigInt(wallet.pending) <= reserve, "wallet exceeds lifetime totals");
     require(BigInt(wallet.eligibleWeight) <= BigInt(wallet.totalEligibleWeight), "wallet snapshot weight");

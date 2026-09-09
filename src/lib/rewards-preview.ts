@@ -1,4 +1,5 @@
 import type { RewardsReport } from "./rewards-types";
+import { sourceIsCurrent } from "./live-freshness";
 
 export function distributionCountdown(report: RewardsReport, now: number, stale: boolean): string {
   if (stale || !now) return "Awaiting service update";
@@ -39,15 +40,21 @@ export function rewardsServiceMessage(report: RewardsReport | null, stale: boole
   return "The next check collects available fees and sends funded allocations that meet the minimum payout. Pending rewards below the minimum carry forward.";
 }
 
-/** Additional unallocated income only; preserve the keeper's cumulative 75% rounding. */
-export function estimatedAdditionalReward(report: RewardsReport, stale: boolean): string | null {
-  const wallet = report.wallet;
-  if (stale || !wallet?.snapshotEpochId || BigInt(wallet.totalEligibleWeight) === BigInt(0)) return null;
+/** Never substitute an old allocation snapshot for a current ownership observation. */
+export function currentRewardPosition(report: RewardsReport, now: number) {
+  const position = report.wallet?.currentPosition;
+  return position && sourceIsCurrent(position.observedAt, now, 60_000) ? position : null;
+}
+
+/** Provisional share of collected, unallocated income; existing entitlements are immutable. */
+export function estimatedAdditionalReward(report: RewardsReport, stale: boolean, now = Date.now()): string | null {
+  const wallet = report.wallet, position = currentRewardPosition(report, now);
+  if (stale || !wallet || !position || BigInt(position.totalEligibleWeight) === BigInt(0)) return null;
   if (report.exclusions.some(entry => entry.address.toLowerCase() === wallet.address.toLowerCase())) return "0";
   const collected = BigInt(report.totals.collected);
   const booked = collected - BigInt(report.totals.unallocated);
   const budget = collected * BigInt(7500) / BigInt(10000) - booked * BigInt(7500) / BigInt(10000);
-  return (budget * BigInt(wallet.eligibleWeight) / BigInt(wallet.totalEligibleWeight)).toString();
+  return (budget * BigInt(position.eligibleWeight) / BigInt(position.totalEligibleWeight)).toString();
 }
 
 /** Lifetime holder totals from validated keeper accounting, independent of the loaded epoch page. */
