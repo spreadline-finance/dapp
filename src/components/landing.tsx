@@ -22,7 +22,7 @@ const questions = [
   { q: "Do I need a wallet to explore?", a: "No. You can browse markets, inspect pools and request trade quotes without a wallet. Connect a compatible wallet when you want to transact or view your own holdings." },
   { q: "Can I still open a trade in Uniswap?", a: "Yes. Open in Uniswap remains available alongside trading directly in Spreadline. In-app trading guides you through the amount, quote review and wallet confirmation." },
   { q: "How do SPREAD rewards work?", a: "The reward model allocates 75% of collected creator fees to eligible token holders and 25% to the fee receiver. The Token rewards page shows service availability, eligible snapshot holdings, allocations and confirmed payments when configured. Rewards depend on collected fees and eligibility; the split is not an APY or a guaranteed return." },
-  { q: "Is Desk & earn the same as token rewards?", a: "No. Desk & earn is a separate USDG vault experience with its own strategy and availability. SPREAD rewards concern eligible token holdings and creator-fee distributions. Check each page for its current status before participating." },
+  { q: "Is the USDG strategy vault the same as token rewards?", a: "No. The USDG strategy vault is a separate vault experience: depositors can share realized trading surplus when the vault completes profitable routes. SPREAD rewards concern eligible token holdings and creator-fee distributions. Check each page for its current status before participating." },
   { q: "What should I know about Stock Tokens and lending?", a: "Stock Tokens are tokenized instruments, not direct ownership of company shares. Review the issuer’s terms and eligibility requirements. DEX prices can differ from issuer references. Lending rates vary, and lending and trading involve market, liquidity and smart-contract risk." },
 ];
 function Launch({ children = "Launch app" }: { children?: string }) {
@@ -92,7 +92,7 @@ export function Landing() {
           <div className="lp-fee-split" aria-label="Reward model: 75 percent to eligible holders, 25 percent to the fee receiver"><div><strong>75<span>%</span></strong><span>Eligible holders</span></div><div><strong>25<span>%</span></strong><span>Fee receiver</span></div></div>
           <p className="lp-rewards-note">Fee allocation, not an APY. Availability, eligibility and payout status are shown in the app.</p>
           <a href="/app?view=rewards" className="lp-button"><SpreadTokenIcon size={23}/>Explore token rewards<ArrowUpRight size={17}/></a>
-          <a href="/app?view=desk" className="lp-secondary-link">Looking for the USDG vault? Explore Desk & earn<ArrowRight size={16}/></a>
+          <a href="/app?view=desk" className="lp-secondary-link">Looking for strategy deposits? Explore the USDG vault<ArrowRight size={16}/></a>
         </div>
       </section>
       <section className="lp-principles lp-wrap" aria-label="Designed for informed decisions"><div><span className="lp-kicker">Know the source</span><h3>Prices with perspective.</h3><p>Issuer references and DEX quotes have different roles. See where each figure comes from.</p></div><div><span className="lp-kicker">Know the status</span><h3>Freshness made visible.</h3><p>Check update times and source availability before relying on a quote or a balance.</p></div><div><span className="lp-kicker">Know what you sign</span><h3>Wallet-led decisions.</h3><p>Review the amount and transaction details before authorizing an onchain action.</p></div></section>

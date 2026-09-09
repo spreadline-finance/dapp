@@ -85,7 +85,7 @@ const views = [
   { id: "terminal", label: "Markets", icon: ChartNoAxesCombined },
   { id: "planner", label: "Position planner", icon: Layers3 },
   { id: "lending", label: "Lending", icon: Landmark },
-  { id: "desk", label: "Desk & earn", icon: Vault },
+  { id: "desk", label: "USDG vault", icon: Vault },
   { id: "rewards", label: "Token rewards", icon: SpreadTokenIcon },
   { id: "check", label: "Arbitrage research", icon: Search },
   { id: "markets", label: "Asset directory", icon: ChartNoAxesCombined },
@@ -1052,7 +1052,7 @@ function Workspace() {
     terminal: { title: "Markets & trading", description: "Stock Tokens on Robinhood Chain." },
     planner: { title: "Position planner", description: "Compare entry or exit quotes at 25%, 50% and 100% of your amount." },
     lending: { title: "Lending", description: "Compare Morpho markets. Supply assets and manage withdrawals." },
-    desk: { title: "Desk & earn", description: "Review pool observations and strategy vault availability." },
+    desk: { title: "USDG strategy vault", description: "Deposit USDG into a vault that shares realized arbitrage surplus with depositors when profitable trades complete." },
     rewards: { title: "Token rewards", description: "Track creator-fee allocations and confirmed holder payments." },
     check: {
       title: "An eye on every route.",
