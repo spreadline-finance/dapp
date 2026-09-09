@@ -1452,8 +1452,23 @@ input[type="range"]:hover::-webkit-slider-thumb {
   max-width: 655px;
 }
 .footer-bottom > span,
-.footer-bottom > a {
+.footer-links a {
   white-space: nowrap;
+}
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 12px 18px;
+}
+.footer-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.footer-links a:hover {
+  color: var(--ink);
 }
 /* Accessible mobile menu and execution desk */
 .dialog-overlay {
@@ -2704,7 +2719,7 @@ input[type="range"]:hover::-webkit-slider-thumb {
     order: 3;
     max-width: none;
   }
-  .footer-bottom > a {
+  .footer-links {
     margin-left: auto;
   }
   .mobile-menu .wordmark {

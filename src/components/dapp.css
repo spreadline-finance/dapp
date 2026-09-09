@@ -869,6 +869,7 @@
 }
 .desk-footer {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
   gap: 25px;
@@ -884,7 +885,11 @@
   gap: 8px;
 }
 .desk-footer > div {
+  flex-wrap: wrap;
   gap: 20px;
+}
+.desk-footer a {
+  white-space: nowrap;
 }
 .connection-dot.offline {
   background: #b09b78;
@@ -2395,9 +2400,6 @@
   }
   .quote-result-card .eyebrow {
     max-width: 145px;
-  }
-  .desk-footer > div {
-    display: none;
   }
   .route-builder .desk-panel-heading {
     gap: 12px;

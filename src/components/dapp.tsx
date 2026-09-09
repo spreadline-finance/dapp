@@ -1438,9 +1438,23 @@ function Workspace() {
               <a
                 href="https://docs.robinhood.com/chain/"
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
               >
                 Network docs <ArrowUpRight size={11} />
+              </a>
+              <a
+                href="https://x.com/spreadonrh"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                X <ArrowUpRight size={11} />
+              </a>
+              <a
+                href="https://github.com/spreadline-finance/dapp"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                GitHub <ArrowUpRight size={11} />
               </a>
             </div>
           </footer>

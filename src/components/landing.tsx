@@ -671,11 +671,25 @@ export function Landing() {
               identify referenced assets and infrastructure; they do not
               indicate endorsement.
             </p>
-            <a
-              href="/app?view=learn"
-            >
-              How it works ↗
-            </a>
+            <nav className="footer-links" aria-label="Footer links">
+              <a href="/app?view=learn">How it works ↗</a>
+              <a
+                href="https://x.com/spreadonrh"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Spreadline on X (opens in a new tab)"
+              >
+                X <ArrowUpRight size={11} aria-hidden="true" />
+              </a>
+              <a
+                href="https://github.com/spreadline-finance/dapp"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Spreadline on GitHub (opens in a new tab)"
+              >
+                GitHub <ArrowUpRight size={11} aria-hidden="true" />
+              </a>
+            </nav>
           </div>
         </footer>
       </div>
