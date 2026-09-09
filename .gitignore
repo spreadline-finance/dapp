@@ -78,7 +78,11 @@ next-env.d.ts
 *.swo
 Thumbs.db
 !.env.example
-!.env.rewards.example
+
+# Payout signing service must remain outside this public dapp repository.
+/spreadline-rewards-keeper/
+/rewards-keeper/
+/keeper-private/
 
 # Account-specific Cloudflare deployment configuration
 /wrangler.production.local.jsonc

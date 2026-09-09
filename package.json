@@ -6,10 +6,6 @@
     "node": ">=22.13.0"
   },
   "scripts": {
-    "rewards:operator": "node scripts/rewards-operator.mjs",
-    "rewards:launch": "node scripts/rewards-launch.mjs",
-    "test:rewards:integration": "node scripts/rewards-integration-test.mjs",
-    "typecheck:rewards": "tsc --noEmit -p tsconfig.rewards-operator.json",
     "desk:operator": "node scripts/desk-operator.mjs",
     "desk:contracts": "node scripts/desk-contract-build.mjs",
     "typecheck:desk": "tsc --noEmit -p tsconfig.desk-operator.json",

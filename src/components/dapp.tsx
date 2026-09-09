@@ -1019,7 +1019,7 @@ function Workspace() {
     planner: { title: "Position & exit planner", description: "See how trade size changes what you could receive." },
     lending: { title: "Put your assets to work.", description: "Explore real rates. Deposit, earn and manage your Morpho positions on Robinhood Chain." },
     desk: { title: "A shared edge.", description: "Follow the markets, see the strategy, and share in realized trading surplus." },
-    rewards: { title: "A share in every fee.", description: "Follow creator fees, token holder distributions and the policy behind every payout." },
+    rewards: { title: "A share in every fee.", description: "75% of collected creator fees, shared with token holders every 15 minutes." },
     check: {
       title: "An eye on every route.",
       description: "Follow live round-trip quotes. Compare pools. Watch the edge change.",
@@ -1438,7 +1438,7 @@ function Workspace() {
                 : `Robinhood Chain · ${n(network.data?.blockNumber, 0)}`}
             </span>
             <div>
-              <span>{view === "rewards" ? "Token rewards · onchain fee distributions" : view === "desk" ? "Vault strategy · USDG settlement" : "Live data · no automated execution"}</span>
+              <span>{view === "rewards" ? "Token rewards · automatic wallet payouts" : view === "desk" ? "Vault strategy · USDG settlement" : "Live data · no automated execution"}</span>
               <a
                 href="https://docs.robinhood.com/chain/"
                 target="_blank"

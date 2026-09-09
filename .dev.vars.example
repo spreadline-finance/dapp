@@ -5,7 +5,6 @@ ROBINHOOD_RPC_URL=https://rpc.mainnet.chain.robinhood.com
 DESK_VAULT_ADDRESS=
 DESK_VAULT_CODE_HASH=
 DESK_VAULT_DEPLOY_BLOCK=0
-# Deploy and verify the creator-fee distributor before setting these values.
-REWARDS_DISTRIBUTOR_ADDRESS=
-REWARDS_DISTRIBUTOR_CODE_HASH=
-REWARDS_DEPLOY_BLOCK=0
+# Public read-only report endpoint of the separately hosted private keeper.
+# No signing keys belong in this dapp's configuration.
+REWARDS_REPORT_URL=

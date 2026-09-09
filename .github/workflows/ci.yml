@@ -34,8 +34,6 @@ jobs:
       - run: forge build --root contracts --ast --force
       - run: npm run lint
       - run: npm run typecheck:worker
-      - run: npm run typecheck:rewards
       - run: npm run test:contracts
       - run: npm test
-      - run: npm run test:rewards:integration
       - run: npm run build
