@@ -78,6 +78,7 @@ next-env.d.ts
 *.swo
 Thumbs.db
 !.env.example
+!.env.rewards.example
 
 # Account-specific Cloudflare deployment configuration
 /wrangler.production.local.jsonc

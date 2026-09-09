@@ -48,11 +48,20 @@ That workflow connects the rest of the workspace:
 | **Lending** | Explore Morpho markets and V2 vaults, inspect rates and manage positions. |
 | **Arbitrage research** | Compare supported round-trip routes and record observations. |
 | **Desk & earn** | Inspect live pools, follow a verified USDG strategy vault, and manage capital and reward claims once launched. |
+| **Token rewards** | Receive a share of the Pons coin's collected creator fees, inspect distributions, and claim unpaid allocations. |
 
 The new [Desk & earn module](DESK.md) includes a locally tested atomic trading vault,
 75/25 reward accounting, wallet actions and an operator runner. The default vault
 is unlaunched: live research works, while deposits and earnings require a reviewed,
 verified, funded deployment. No return is guaranteed.
+
+The separate [Token rewards system](REWARDS.md) routes Pons creator fees into a
+funded distributor, snapshots eligible coin holders, publishes auditable proofs,
+and pays holders automatically through a persistent operator. Owners can change
+the holder/developer/treasury split, payment interval and payout wallets onchain.
+Pons creator tax and the payout asset are selected at coin launch. The repository
+includes launch preparation/execution, administration, proof storage and the
+operator; a real coin and funded deployments must be configured before payouts start.
 
 ## Transparent by design
 

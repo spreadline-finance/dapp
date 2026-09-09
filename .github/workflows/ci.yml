@@ -28,7 +28,14 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
+      - uses: foundry-rs/foundry-toolchain@908c540300062bd5a7e473851cdb4282204cee09 # v1
+        with:
+          version: v1.0.0
+      - run: forge build --root contracts --ast --force
       - run: npm run lint
       - run: npm run typecheck:worker
+      - run: npm run typecheck:rewards
+      - run: npm run test:contracts
       - run: npm test
+      - run: npm run test:rewards:integration
       - run: npm run build

@@ -14,12 +14,16 @@
     "DESK_VAULT_ADDRESS": "",
     "DESK_VAULT_CODE_HASH": "",
     "DESK_VAULT_DEPLOY_BLOCK": "0",
+    "REWARDS_DISTRIBUTOR_ADDRESS": "",
+    "REWARDS_DISTRIBUTOR_CODE_HASH": "",
+    "REWARDS_DEPLOY_BLOCK": "0",
   },
   "observability": {
     "enabled": true,
     "head_sampling_rate": 1,
   },
   "triggers": { "crons": ["*/5 * * * *"] },
+  "r2_buckets": [{ "binding": "REWARDS_PROOFS", "bucket_name": "spreadline-reward-proofs" }],
   "d1_databases": [
     {
       "binding": "SPREADLINE_DB",

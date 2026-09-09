@@ -1,0 +1,26 @@
+[Unit]
+Description=Spreadline Pons fee collection and holder payouts
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=spreadline
+Group=spreadline
+WorkingDirectory=/opt/spreadline
+EnvironmentFile=/etc/spreadline/rewards.env
+Environment=REWARDS_STATE_DIR=/var/lib/spreadline-rewards
+ExecStart=/usr/bin/node /opt/spreadline/.wrangler/rewards/operator.mjs --execute --watch
+Restart=on-failure
+RestartSec=30
+TimeoutStopSec=240
+StateDirectory=spreadline-rewards
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/spreadline-rewards
+
+[Install]
+WantedBy=multi-user.target

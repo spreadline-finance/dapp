@@ -9,6 +9,9 @@ import { parseSymbol, validWallet, parseTradeSize, parsePrices, quoteIsFresh } f
 import { PUBLIC_RPC, TRACKED_SYMBOLS } from "../src/lib/market-types";
 import { parseSwapAmount, TradePreparationError, type TradeSide } from "../src/lib/trading";
 import { parsePlannerAmount } from "../src/lib/position-planner";
+import { createRewardsService } from "./rewards-service";
+import { getPonsLaunchState } from "./pons-service";
+import type { Hex } from "viem";
 const MAX_BYTES = 2_000_000;
 class UpstreamError extends Error {
   constructor(readonly status: number, readonly retryAfter = 60) {
@@ -97,6 +100,34 @@ export default {
   ): Promise<Response> {
     const url = new URL(request.url);
     if (!url.pathname.startsWith("/api/")) return env.ASSETS.fetch(request);
+    if (url.pathname === "/api/rewards" || url.pathname.startsWith("/api/rewards/")) {
+      const manifest = url.pathname === "/api/rewards/manifest";
+      const launch = url.pathname === "/api/rewards/launch";
+      if (!manifest && !launch && url.pathname !== "/api/rewards") return json({ error: "Endpoint not found." }, 404);
+      if (request.method !== "GET" && !(manifest && request.method === "POST")) return json({ error: "Method not supported." }, 405);
+      try {
+        const allowed = manifest ? ["epoch", "page"] : launch ? ["address"] : ["address", "before"];
+        if (url.search.length > 350 || [...url.searchParams.keys()].some(key => !allowed.includes(key) || url.searchParams.getAll(key).length !== 1)) throw new Error("Invalid query parameters.");
+        const account = url.searchParams.has("address") ? validWallet(url.searchParams.get("address")) : undefined;
+        const rawEpoch = url.searchParams.get(manifest ? "epoch" : "before");
+        if ((manifest || rawEpoch !== null) && !/^[1-9]\d{0,15}$/.test(rawEpoch || "")) throw new Error("Invalid distribution number.");
+        const rawPage = url.searchParams.get("page");
+        if (rawPage !== null && !/^0x[0-9a-f]{64}$/.test(rawPage)) throw new Error("Invalid proof page hash.");
+        const budget = await consumeBudget(env.SPREADLINE_DB, request.headers.get("cf-connecting-ip") || "local", request.method === "POST" ? "/api/rewards/upload" : "/api/rewards", request.method === "POST" ? 400 : 60);
+        if (!budget.allowed) { const response = json({ error: "Rewards request limit reached. Retry shortly." }, 429); response.headers.set("retry-after", String(budget.retryAfter)); return response; }
+        const rewards = createRewardsService(env.ROBINHOOD_RPC_URL || PUBLIC_RPC, env, env.REWARDS_PROOFS);
+        if (manifest) {
+          // Uploads need no signing key: both the manifest hash and every page/proof
+          // must match the existing onchain commitment. Replays store identical data.
+          const body = request.method === "POST" ? await readBoundedJSON(new Response(request.body, { headers: request.headers })) : undefined;
+          return json(await rewards.manifest(BigInt(rawEpoch!), rawPage as Hex | undefined || undefined, body));
+        }
+        return json(launch ? await getPonsLaunchState(env.ROBINHOOD_RPC_URL || PUBLIC_RPC, account) : await rewards.snapshot(account, rawEpoch === null ? undefined : BigInt(rawEpoch)));
+      } catch (error) {
+        console.error(JSON.stringify({ event: "rewards_api_failed", reason: error instanceof Error ? error.name : "unknown" }));
+        return json({ error: "The rewards request could not be verified. Check its parameters, contract configuration and current network availability." }, 400);
+      }
+    }
     if (request.method !== "GET")
       return json({ error: "Only read-only GET requests are supported." }, 405);
     if (url.search.length > 350)

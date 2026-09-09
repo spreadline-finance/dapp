@@ -70,16 +70,18 @@ import { MarketTerminal } from "./market-terminal";
 import { StockLogo } from "./stock-logo";
 import { Lending } from "./lending";
 import { StrategyDesk } from "./desk";
+import { TokenRewards } from "./token-rewards";
 import { ResearchHistoryChart } from "./arbitrage-monitor";
 import { requestResearchQuote } from "@/lib/research-quote-client";
 import { PositionPlanner } from "./position-planner";
 import "./dapp.css";
-type View = "terminal" | "planner" | "lending" | "desk" | "check" | "markets" | "routes" | "portfolio" | "activity" | "infrastructure" | "learn";
+type View = "terminal" | "planner" | "lending" | "desk" | "rewards" | "check" | "markets" | "routes" | "portfolio" | "activity" | "infrastructure" | "learn";
 const views = [
   { id: "terminal", label: "Markets & trading", icon: ChartNoAxesCombined },
   { id: "planner", label: "Position & exit planner", icon: Layers3 },
   { id: "lending", label: "Lending", icon: Landmark },
   { id: "desk", label: "Desk & earn", icon: Vault },
+  { id: "rewards", label: "Token rewards", icon: Wallet },
   { id: "check", label: "Arbitrage research", icon: Search },
   { id: "markets", label: "Asset directory", icon: ChartNoAxesCombined },
   { id: "routes", label: "Route analysis", icon: Layers3 },
@@ -1017,6 +1019,7 @@ function Workspace() {
     planner: { title: "Position & exit planner", description: "See how trade size changes what you could receive." },
     lending: { title: "Put your assets to work.", description: "Explore real rates. Deposit, earn and manage your Morpho positions on Robinhood Chain." },
     desk: { title: "A shared edge.", description: "Follow the markets, see the strategy, and share in realized trading surplus." },
+    rewards: { title: "A share in every fee.", description: "Follow creator fees, token holder distributions and the policy behind every payout." },
     check: {
       title: "An eye on every route.",
       description: "Follow live round-trip quotes. Compare pools. Watch the edge change.",
@@ -1140,6 +1143,7 @@ function Workspace() {
           {view === "planner" && <PositionPlanner key={`${plannerSeed?.id ?? "manual"}:${walletContext}`} assets={sorted} symbol={symbol} onSelect={setSymbol} wallet={wallet} now={now} registryReady={!!catalog.data && !catalog.data.dataStatus} registryError={catalog.error?.message ?? catalog.data?.dataStatus?.reason ?? null} initialAmount={plannerSeed?.symbol === symbol && plannerSeed.walletContext === walletContext ? plannerSeed.amount : undefined}/>}
           {view === "lending" && <Lending assets={assets} now={now} wallet={wallet}/>}
           {view === "desk" && <StrategyDesk assets={sorted} now={now} wallet={wallet} onAnalyze={analyze} registryError={catalog.error?.message ?? catalog.data?.dataStatus?.reason ?? null}/>}
+          {view === "rewards" && <TokenRewards wallet={wallet} now={now}/>}
           {view === "check" && <OpportunityCheck assets={assets} registryReady={!!catalog.data && !catalog.data.dataStatus} registryError={catalog.error?.message ?? catalog.data?.dataStatus?.reason ?? null} now={now} onInspect={analyze} onLearn={() => navigate("learn")}/>}
           {view === "markets" && (
             <>
@@ -1434,7 +1438,7 @@ function Workspace() {
                 : `Robinhood Chain · ${n(network.data?.blockNumber, 0)}`}
             </span>
             <div>
-              <span>{view === "desk" ? "Vault strategy · USDG settlement" : "Live data · no automated execution"}</span>
+              <span>{view === "rewards" ? "Token rewards · onchain fee distributions" : view === "desk" ? "Vault strategy · USDG settlement" : "Live data · no automated execution"}</span>
               <a
                 href="https://docs.robinhood.com/chain/"
                 target="_blank"
