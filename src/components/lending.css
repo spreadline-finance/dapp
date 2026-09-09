@@ -336,7 +336,7 @@
 .lending-polished .lend-section-heading { margin-bottom: 14px; }
 .lending-polished .lend-section-heading .eyebrow { display: inline-flex; gap: 7px; align-items: center; font-size: .75rem; letter-spacing: 1.1px; color: var(--lend-muted); }
 .lending-polished .lend-section-heading h3 { font-size: 31px; letter-spacing: -.7px; color: #304428; }
-.lend-position-count { display: inline-grid; place-items: center; min-width: 25px; height: 25px; padding: 3px 7px; margin-left: 12px; font: 500 .8125rem/1 var(--font-body), sans-serif; vertical-align: middle; color: var(--lend-muted); background: #edf3e4; border: 1px solid #dce6cf; border-radius: 7px; }
+.lend-position-count { display: inline-grid; place-items: center; min-width: 25px; height: 25px; padding: 3px 7px; margin-left: 12px; font-family: var(--font-body, system-ui, sans-serif); font-size: .8125rem; font-weight: 500; line-height: 1; letter-spacing: 0; vertical-align: .18em; color: var(--lend-muted); background: #edf3e4; border: 1px solid #dce6cf; border-radius: 7px; }
 .lend-token-stack { display: flex; padding-left: 16px; align-items: center; }
 .lend-token-stack .token-logo { margin-left: -12px; border: 3px solid #f5f9ee; width: 52px !important; height: 52px !important; }
 .lend-token-stack .token-logo:nth-child(2) { z-index: 1; }.lend-token-stack .token-logo:nth-child(3) { z-index: 2; }
