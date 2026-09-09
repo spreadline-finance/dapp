@@ -8,6 +8,7 @@ import { formatUnits } from "viem";
 import { ageLabel, DataError, getData, pollingInterval, shortAddress } from "@/lib/live-api";
 import { sourceIsCurrent } from "@/lib/live-freshness";
 import { CHAIN_ID, EXPLORER } from "@/lib/market-types";
+import { distributionCountdown, estimatedAdditionalReward } from "@/lib/rewards-preview";
 import type { RewardsReport, RewardsSnapshot } from "@/lib/rewards-types";
 import { WalletButton, type WalletState } from "./wallet";
 import { SpreadTokenIcon } from "./spread-token";
@@ -89,14 +90,15 @@ function serviceMessage(report: RewardsReport | null, stale: boolean) {
   return "The service checks available fees and sends funded holder allocations automatically.";
 }
 
-function PersonalRewards({ report, wallet }: { report: RewardsReport; wallet: WalletState }) {
+function PersonalRewards({ report, wallet, stale }: { report: RewardsReport; wallet: WalletState; stale: boolean }) {
   const personal = report.wallet?.address.toLowerCase() === wallet.account?.toLowerCase() ? report.wallet : null;
   const asset = report.rewardAsset.symbol, decimals = report.rewardAsset.decimals;
+  const estimate = personal ? estimatedAdditionalReward(report, stale) : null;
   if (!wallet.account || !personal) return <aside className="rewards-panel rewards-wallet-prompt"><WalletIcon size={20} aria-hidden="true"/><div><h2>Your rewards</h2><p>{!wallet.account ? "Connect your wallet to view your holdings, allocations and confirmed payments." : "Your wallet’s balances and allocations are missing from this report. Refresh to check again."}</p></div></aside>;
   return <section className="rewards-panel rewards-participation">
     <span className="rewards-tag"><Users size={12}/>Automatic holder payouts</span>
     <h2>Your rewards</h2>
-    <p>Based on your eligible holdings at each payout snapshot.</p>
+    <p>Rewards are sent automatically to this wallet when payouts are running and your allocation is ready. No claim transaction needed.</p>
       <WalletButton wallet={wallet}/>
       <span className="rewards-account"><WalletIcon size={12}/>{wallet.chainId === CHAIN_ID ? "Connected on Robinhood Chain" : "Viewing Robinhood Chain rewards · wallet network unchanged"}</span>
       <div className="rewards-personal-total"><span>Confirmed received</span><strong>{amount(personal?.paid, decimals)}<small>{asset}</small></strong></div>
@@ -106,6 +108,7 @@ function PersonalRewards({ report, wallet }: { report: RewardsReport; wallet: Wa
         <Metric label="Earned allocations" value={amount(personal?.earned, decimals)} unit={asset} note="Received plus amounts awaiting payment."/>
         <Metric label="Awaiting automatic payment" value={amount(personal?.pending, decimals)} unit={asset} note="Allocated by the payout service; not yet received."/>
       </div>
+      <div className="rewards-estimate"><Metric label="Estimated additional rewards so far" value={amount(estimate, decimals)} unit={estimate === null ? undefined : asset} note={stale ? "Waiting for a fresh report before estimating." : estimate === null ? "An estimate appears after the first holder snapshot. No reliable share is available yet." : `Based on unallocated collected fees and your share at snapshot #${personal.snapshotEpochId}. Separate from your pending allocation; the next snapshot may change this amount.`}/></div>
       <p className="rewards-wallet-note">Amounts come from the payout service’s ledger. Only confirmed transfers count as received. A later token purchase does not change an earlier snapshot.</p>
   </section>;
 }
@@ -128,7 +131,7 @@ export function TokenRewards({ wallet, now }: { wallet: WalletState; now: number
   const asset = report?.rewardAsset.symbol ?? "ETH / USDG", decimals = report?.rewardAsset.decimals ?? 18;
   const stale = !!snapshot.error || snapshot.data?.status === "stale" || !sourceIsCurrent(report?.updatedAt, now, 20 * 60000);
   const serviceCurrent = snapshot.data?.status === "reported" && !stale;
-  const nextRun = !report ? "After service setup" : stale ? "Awaiting service update" : report.status === "paused" ? "Paused" : report.nextRunAt && Date.parse(report.nextRunAt) <= now ? "Scheduled run due" : time(report.nextRunAt);
+  const nextRun = report ? distributionCountdown(report, now, stale) : "After service setup";
   const statusLabel = snapshot.isPending ? "Reading payout service" : snapshot.data?.status === "unconfigured" ? "Payout setup pending" : !report ? "Payout data unavailable" : stale ? "Last available service report" : report.status === "ready" ? "Payout service reporting" : report.status === "paused" ? "Payouts paused" : "Payout service needs attention";
   const refreshWait = snapshot.error instanceof DataError ? Math.max(0, Math.ceil((snapshot.error.retryAt - now) / 1000)) : 0;
   const refreshButton = <button className="rewards-button" disabled={snapshot.isFetching || refreshWait > 0} onClick={() => void snapshot.refetch()}><RefreshCw size={14} className={snapshot.isFetching ? "spin" : ""}/>{snapshot.isFetching ? "Updating…" : refreshWait ? `Retry in ${refreshWait}s` : "Refresh"}</button>;
@@ -151,6 +154,7 @@ export function TokenRewards({ wallet, now }: { wallet: WalletState; now: number
     {report.intervalSeconds === 30 && <Notice>Test schedule: checks every 30 seconds. Payments still require collected fees, confirmations and the minimum payout.</Notice>}
     <div className={`rewards-status ${serviceCurrent ? "is-current" : ""}`}><div><i/><strong>{statusLabel}</strong><span className="rewards-status-time">Updated {ageLabel(report.updatedAt, now)}</span></div>{refreshButton}</div>
     {(snapshot.error || snapshot.data?.status === "unconfigured" || snapshot.data?.status === "unavailable" || snapshot.data?.status === "stale") && <Notice warning={!!snapshot.error || snapshot.data?.status !== "unconfigured"}>{snapshot.error?.message ?? snapshot.data?.message}</Notice>}
+    <section className="rewards-panel rewards-next-distribution" aria-labelledby="next-distribution-title"><div><span className="rewards-tag"><CalendarClock size={14}/>Every {interval(report.intervalSeconds)}</span><h2 id="next-distribution-title">Next distribution check</h2><strong className="rewards-countdown" role="timer" aria-live="off">{nextRun}</strong><p>{serviceMessage(report, stale)}</p></div><div><WalletIcon size={22}/><h3>Straight to your wallet</h3><p>When payouts are running, eligible rewards arrive automatically in {asset}. You don’t need to claim or keep this page open.</p><p className="rewards-timing-note">The countdown is for the next service check. Arrival depends on available fees, the minimum payout and network confirmations.</p></div></section>
     <div className="rewards-overview"><section className="rewards-panel"><div className="rewards-heading"><div><h2>Holder distributions</h2><p>75% of received creator fees goes to eligible holders.</p></div><Coins size={22}/></div>
       <div className="rewards-total"><span>Confirmed paid to holders</span><strong>{amount(report?.totals.paidToHolders, decimals)}<small>{asset}</small></strong><p>Completed payments reported by the payout service. Pending allocations are shown separately.</p></div>
       <div className="rewards-metrics">
@@ -160,7 +164,7 @@ export function TokenRewards({ wallet, now }: { wallet: WalletState; now: number
         <Metric label="Developer share" value={amount(report?.totals.retainedByDeveloper, decimals)} unit={asset} note="The remaining 25% stays with the fee receiver."/>
       </div>
       <div className="rewards-panel-footer"><span>Fee receiver · {report ? <AddressLink address={report.feeWallet}/> : "Not configured"}</span><span>{report ? <AddressLink address={report.token} label={report.tokenSymbol}/> : "Token launch pending"}</span></div>
-    </section><PersonalRewards report={report} wallet={wallet}/></div>
+    </section><PersonalRewards report={report} wallet={wallet} stale={stale}/></div>
     <section className="rewards-panel rewards-history"><div className="rewards-heading"><div><h2>Distribution history</h2><p>Collected income, snapshot allocations and automatic payment progress.</p></div><span className="rewards-tag">{report?.epochs.length ?? 0} loaded</span></div>
       {report?.epochs.length ? report.epochs.map((epoch) => <article className="rewards-epoch" key={epoch.id}><div className="rewards-epoch-heading"><div><h3>Distribution #{epoch.id}</h3><span className={`rewards-tag ${epoch.status === "attention" ? "is-warning" : ""}`}>{epoch.status === "completed" ? <Check size={11}/> : <Clock3 size={11}/>}{{ scheduled: "Awaiting payment", paying: "Sending payments", completed: "Paid", attention: "Payout delayed" }[epoch.status]}</span></div><time dateTime={epoch.createdAt}>{time(epoch.createdAt)}</time></div>
         <div className="rewards-epoch-metrics"><Metric label="Creator fees received" value={amount(epoch.collected, decimals)} unit={asset}/><Metric label="Holder allocation" value={amount(epoch.holderBudget, decimals)} unit={asset}/><Metric label="Confirmed paid" value={amount(epoch.paid, decimals)} unit={asset}/><Metric label="Awaiting payment" value={amount(epoch.remaining, decimals)} unit={asset}/></div>

@@ -219,3 +219,34 @@ test("30-second test reports are accepted without changing the fee policy", asyn
   assert.equal(result.report?.intervalSeconds, 30);
   assert.equal(result.report?.holderBps, 7500);
 });
+
+import { distributionCountdown, estimatedAdditionalReward } from "../src/lib/rewards-preview";
+
+test("distribution countdown ticks and never invents another schedule when overdue or blocked", () => {
+  const now = Date.now(), report = document(now);
+  assert.equal(distributionCountdown(report, now, false), "15m 00s");
+  assert.equal(distributionCountdown(report, now + 1000, false), "14m 59s");
+  assert.equal(distributionCountdown(report, now + 900000, false), "Due · awaiting service update");
+  report.status = "attention";
+  assert.equal(distributionCountdown(report, now, false), "Delayed · needs attention");
+  report.status = "paused";
+  assert.equal(distributionCountdown(report, now, false), "Paused");
+  assert.equal(distributionCountdown(report, now, true), "Awaiting service update");
+  report.status = "ready"; report.nextRunAt = new Date(now + 30000).toISOString();
+  assert.equal(distributionCountdown(report, now, false), "0m 30s");
+  report.nextRunAt = null;
+  assert.equal(distributionCountdown(report, now, false), "Awaiting schedule");
+});
+
+test("reward estimate separates pending allocations and respects cumulative rounding and missing snapshots", () => {
+  const report = personal();
+  // 75% of 7 minus 75% of 4 = 2 additional raw units; wallet owns 3/4.
+  assert.equal(estimatedAdditionalReward(report, false), "1");
+  assert.equal(report.wallet!.pending, "2");
+  assert.equal(estimatedAdditionalReward(report, true), null);
+  report.wallet!.snapshotEpochId = null;
+  assert.equal(estimatedAdditionalReward(report, false), null);
+  report.wallet!.snapshotEpochId = "2";
+  report.wallet!.eligibleWeight = "0";
+  assert.equal(estimatedAdditionalReward(report, false), "0");
+});
