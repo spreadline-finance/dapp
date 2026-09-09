@@ -72,7 +72,7 @@ test("wallet requests are read-only, address-bound, identity-checked and never s
   assert.equal(mock.calls.length, 6, "Each lookup fetches a fresh public identity and its own wallet report.");
   for (const { url, init } of mock.calls) {
     assert.equal(url.origin + url.pathname, endpoint); assert.equal(init?.method, "GET");
-    assert.equal(init?.redirect, "error"); assert.equal(init?.cache, "no-store"); assert.equal(init?.body, undefined);
+    assert.equal(init?.redirect, "manual"); assert.equal(init?.cache, "no-store"); assert.equal(init?.body, undefined);
     assert.ok(init?.signal); assert.deepEqual(init?.headers, { accept: "application/json", "cache-control": "no-store" });
     assert.deepEqual([...url.searchParams.keys()].filter(key => key !== "wallet"), []);
   }

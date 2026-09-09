@@ -47,11 +47,16 @@ export function createRewardsService(config: RewardsConfig, fetcher: typeof fetc
       const cursor = before === undefined ? undefined : String(before);
       if (cursor !== undefined && !/^[1-9]\d{0,15}$/.test(cursor)) throw new Error("Invalid pagination cursor.");
       const endpoint = reportEndpoint(config.REWARDS_REPORT_URL.trim());
+      const headers: Record<string, string> = { accept: "application/json", "cache-control": "no-store" };
+      if (/(?:^|\.)ngrok-free\.(?:dev|app)$|(?:^|\.)ngrok\.(?:app|io)$/.test(endpoint.hostname)) {
+        headers["ngrok-skip-browser-warning"] = "1";
+      }
       async function read(walletAddress?: Address, page?: string): Promise<RewardsReport> {
         const url = new URL(endpoint);
         if (walletAddress) url.searchParams.set("wallet", walletAddress);
         if (page) url.searchParams.set("before", page);
-        const response = await fetcher(url.toString(), { method: "GET", redirect: "error", cache: "no-store", headers: { accept: "application/json", "cache-control": "no-store" }, signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) });
+        // Workers supports manual redirects; non-2xx responses below are rejected.
+        const response = await fetcher(url.toString(), { method: "GET", redirect: "manual", cache: "no-store", headers, signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) });
         if (!response.ok || response.redirected) {
           await response.body?.cancel().catch(() => undefined);
           throw new Error("Reward service unavailable.");
