@@ -10,6 +10,7 @@ import { PUBLIC_RPC, TRACKED_SYMBOLS } from "../src/lib/market-types";
 import { parseSwapAmount, TradePreparationError, type TradeSide } from "../src/lib/trading";
 import { parsePlannerAmount } from "../src/lib/position-planner";
 import { createRewardsService } from "./rewards-service";
+import { parseRewardPrice, REWARD_PRICE_URL } from "./rewards-price";
 import apiContract from "../config/api-contract.json";
 const MAX_BYTES = 2_000_000;
 const rpcEndpoint = (env: Env) => env.ROBINHOOD_RPC_SECRET || env.ROBINHOOD_RPC_URL || PUBLIC_RPC;
@@ -143,6 +144,7 @@ export default {
     const allowed = new Set([
       "/api/catalog",
       "/api/prices",
+      "/api/reward-price",
       "/api/network",
       "/api/pools",
       "/api/quote",
@@ -428,6 +430,12 @@ export default {
       let data: unknown;
       let ttl = 0;
       switch (url.pathname) {
+        case "/api/reward-price": {
+          const source = await fetchJSON(REWARD_PRICE_URL, 60);
+          data = parseRewardPrice(source.value, source.fetchedAt);
+          ttl = 30;
+          break;
+        }
         case "/api/desk":
           data = await createDeskService(rpcEndpoint(env), env, service).snapshot(address);
           ttl = isDeskPrivate ? 0 : 15;

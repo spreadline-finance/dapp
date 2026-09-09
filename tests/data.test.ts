@@ -11,6 +11,7 @@ import "./desk-transactions.test";
 import "./desk-contract.test";
 import "./rewards-service.test";
 import "./rewards-router.test";
+import "./rewards-usd.test";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { DatabaseSync } from "node:sqlite";

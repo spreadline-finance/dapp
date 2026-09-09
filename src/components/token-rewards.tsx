@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { createContext, useContext, useState, type ReactNode } from "react";
 import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, ArrowUpRight, CalendarClock, Check, ChevronDown, CircleHelp, Clock3, Coins, FileCheck2, LoaderCircle, RefreshCw, Users, Wallet as WalletIcon } from "lucide-react";
@@ -9,6 +9,7 @@ import { ageLabel, DataError, getData, pollingInterval, shortAddress } from "@/l
 import { sourceIsCurrent } from "@/lib/live-freshness";
 import { CHAIN_ID, EXPLORER } from "@/lib/market-types";
 import { distributionCountdown, distributionTotals, estimatedAdditionalReward, rewardsServiceMessage } from "@/lib/rewards-preview";
+import { rewardPriceIsCurrent, rewardUsdValue, type RewardUsdPrice } from "@/lib/rewards-usd";
 import type { RewardsReport, RewardsSnapshot } from "@/lib/rewards-types";
 import { WalletButton, type WalletState } from "./wallet";
 import { SpreadTokenIcon } from "./spread-token";
@@ -72,8 +73,14 @@ function RewardsLaunchGuide() {
     </div>
   </section>;
 }
-function Metric({ label, value, unit, note }: { label: string; value: string; unit?: string; note?: ReactNode }) {
-  return <div className="rewards-metric"><span>{label}</span><strong>{value}{unit && <> <small>{unit}</small></>}</strong>{note && <p>{note}</p>}</div>;
+const RewardPriceContext = createContext<{ quote: RewardUsdPrice | null; asset: string; decimals: number; now: number } | null>(null);
+function UsdEquivalent({ value }: { value: string | null | undefined }) {
+  const context = useContext(RewardPriceContext);
+  const usd = context ? rewardUsdValue(value, context.decimals, context.quote, context.asset, context.now) : null;
+  return usd === null ? null : <span className="rewards-usd" title="Estimated USD value at the current reference price">{usd} USD</span>;
+}
+function Metric({ label, value, unit, note, rewardRaw }: { label: string; value: string; unit?: string; note?: ReactNode; rewardRaw?: string | null }) {
+  return <div className="rewards-metric"><span>{label}</span><strong>{value}{unit && <> <small>{unit}</small></>}</strong><UsdEquivalent value={rewardRaw}/>{note && <p>{note}</p>}</div>;
 }
 function PersonalRewards({ report, wallet, stale }: { report: RewardsReport; wallet: WalletState; stale: boolean }) {
   const personal = report.wallet?.address.toLowerCase() === wallet.account?.toLowerCase() ? report.wallet : null;
@@ -86,14 +93,14 @@ function PersonalRewards({ report, wallet, stale }: { report: RewardsReport; wal
     <p>Rewards are sent automatically to this wallet when payouts are running and your allocation is ready. No claim transaction needed.</p>
       <WalletButton wallet={wallet}/>
       <span className="rewards-account"><WalletIcon size={12}/>{wallet.chainId === CHAIN_ID ? "Connected on Robinhood Chain" : "Viewing Robinhood Chain rewards · wallet network unchanged"}</span>
-      <div className="rewards-personal-summary"><div className="rewards-personal-total"><span>Awaiting automatic payment</span><strong>{amount(personal.pending, decimals)}<small>{asset}</small></strong></div><div className="rewards-received-total"><span>Received so far</span><strong>{amount(personal.paid, decimals)} <small>{asset}</small></strong></div></div>
+      <div className="rewards-personal-summary"><div className="rewards-personal-total"><span>Awaiting automatic payment</span><strong>{amount(personal.pending, decimals)}<small>{asset}</small></strong><UsdEquivalent value={personal.pending}/></div><div className="rewards-received-total"><span>Received so far</span><strong>{amount(personal.paid, decimals)} <small>{asset}</small></strong><UsdEquivalent value={personal.paid}/></div></div>
       <div className="rewards-metrics">
         <Metric label="Reported token balance" value={amount(personal?.tokenBalance, report?.tokenDecimals ?? 18, 4)} unit={report?.tokenSymbol} note={personal && report ? `Read at block ${report.balanceAsOfBlock}.` : "Available after the payout service is configured."}/>
         <Metric label="Your eligible snapshot share" value={personal?.snapshotEpochId ? share(personal.eligibleWeight, personal.totalEligibleWeight) : "—"} note={personal?.snapshotEpochId ? `Snapshot #${personal.snapshotEpochId} · ${amount(personal.eligibleWeight, report?.tokenDecimals ?? 18, 4)} eligible tokens.` : "Appears after your first reported snapshot."}/>
-        <Metric label="Earned allocations" value={amount(personal?.earned, decimals)} unit={asset} note="Received plus amounts awaiting payment."/>
+        <Metric label="Earned allocations" value={amount(personal?.earned, decimals)} rewardRaw={personal?.earned} unit={asset} note="Received plus amounts awaiting payment."/>
 
       </div>
-      <div className="rewards-estimate"><Metric label="Estimated additional rewards so far" value={amount(estimate, decimals)} unit={estimate === null ? undefined : asset} note={stale ? "Waiting for a fresh report before estimating." : estimate === null ? "An estimate appears after the first holder snapshot. No reliable share is available yet." : `Based on unallocated collected fees and your share at snapshot #${personal.snapshotEpochId}. Separate from your pending allocation; the next snapshot may change this amount.`}/></div>
+      <div className="rewards-estimate"><Metric label="Estimated additional rewards so far" value={amount(estimate, decimals)} rewardRaw={estimate} unit={estimate === null ? undefined : asset} note={stale ? "Waiting for a fresh report before estimating." : estimate === null ? "An estimate appears after the first holder snapshot. No reliable share is available yet." : `Based on unallocated collected fees and your share at snapshot #${personal.snapshotEpochId}. Separate from your pending allocation; the next snapshot may change this amount.`}/></div>
       <p className="rewards-wallet-note">Amounts come from the payout service’s ledger. Only confirmed transfers count as received. A later token purchase does not change an earlier snapshot.</p>
   </section>;
 }
@@ -102,7 +109,7 @@ function PaymentHistory({ report, account }: { report: RewardsReport | null; acc
   const personal = report?.wallet?.address.toLowerCase() === account?.toLowerCase() ? report?.wallet : null;
   if (!personal?.receipts.length) return null;
   return <section className="rewards-panel rewards-history"><div className="rewards-heading"><div><h2>Your confirmed payments</h2><p>Recent transfers reported as confirmed, with receipts you can inspect.</p></div><Check size={21}/></div>
-    {personal.receipts.map((receipt) => <div className="rewards-receipt" key={`${receipt.transactionHash}:${receipt.epochId}`}><div><strong>{amount(receipt.amount, report?.rewardAsset.decimals)} {report?.rewardAsset.symbol}</strong><p>Distribution #{receipt.epochId} · Block {receipt.blockNumber}{receipt.confirmedAt ? ` · ${time(receipt.confirmedAt)}` : ""}</p></div><a className="rewards-text-button" href={`${EXPLORER}/tx/${receipt.transactionHash}`} target="_blank" rel="noreferrer">View receipt<ArrowUpRight size={13}/></a></div>)}
+    {personal.receipts.map((receipt) => <div className="rewards-receipt" key={`${receipt.transactionHash}:${receipt.epochId}`}><div><strong>{amount(receipt.amount, report?.rewardAsset.decimals)} {report?.rewardAsset.symbol}</strong><UsdEquivalent value={receipt.amount}/><p>Distribution #{receipt.epochId} · Block {receipt.blockNumber}{receipt.confirmedAt ? ` · ${time(receipt.confirmedAt)}` : ""}</p></div><a className="rewards-text-button" href={`${EXPLORER}/tx/${receipt.transactionHash}`} target="_blank" rel="noreferrer">View receipt<ArrowUpRight size={13}/></a></div>)}
   </section>;
 }
 
@@ -114,6 +121,8 @@ export function TokenRewards({ wallet, now }: { wallet: WalletState; now: number
   const snapshot = useQuery({ queryKey: ["token-rewards-wallet-payouts", wallet.account, before], queryFn: ({ signal }) => getData<RewardsSnapshot>(`rewards${query.size ? `?${query}` : ""}`, signal), staleTime: 20000, refetchInterval: (q) => before ? false : pollingInterval(q.state.data?.status === "unconfigured" ? 60000 : 20000, q.state.error, q.state.fetchFailureCount) });
   const report = snapshot.data?.report ?? null;
   const asset = report?.rewardAsset.symbol ?? "ETH / USDG", decimals = report?.rewardAsset.decimals ?? 18;
+  const usdPrice = useQuery({ queryKey: ["reward-usd-price"], queryFn: ({ signal }) => getData<RewardUsdPrice>("reward-price", signal), enabled: report?.rewardAsset.symbol === "ETH", staleTime: 60000, refetchInterval: q => pollingInterval(60000, q.state.error, q.state.fetchFailureCount) });
+  const currentPrice = rewardPriceIsCurrent(usdPrice.data, asset, now) ? usdPrice.data : null;
   const stale = !!snapshot.error || snapshot.data?.status === "stale" || !sourceIsCurrent(report?.updatedAt, now, 20 * 60000);
   const serviceCurrent = snapshot.data?.status === "reported" && !stale;
   const pool = report ? distributionTotals(report) : null;
@@ -136,36 +145,37 @@ export function TokenRewards({ wallet, now }: { wallet: WalletState; now: number
       {unconfigured && <RewardsLaunchGuide/>}
     </div>;
   }
-  return <div className="rewards-workspace">
+  return <RewardPriceContext.Provider value={{ quote: currentPrice, asset, decimals, now }}><div className="rewards-workspace">
     <RewardsIntroduction report={report}/>
+    <p className="rewards-price-reference">{currentPrice ? <>USD estimates use the current {asset} price, including past payments. <a href="https://www.coinbase.com/converter/eth/usd" target="_blank" rel="noreferrer">Coinbase</a> · checked {ageLabel(currentPrice.fetchedAt, now)}. Payments remain in {asset}.</> : usdPrice.isFetching && asset === "ETH" ? "Loading USD reference price…" : `USD estimates unavailable. Reward amounts remain shown in ${asset}.`}</p>
     {report.intervalSeconds === 30 && report.executionMode !== "manual" && report.executionMode !== "report-only" && <Notice>Test schedule: checks every 30 seconds. Payments still require collected fees, confirmations and the minimum payout.</Notice>}
     <div className={`rewards-status ${serviceCurrent && report.status === "ready" && report.executionMode !== "report-only" ? "is-current" : "is-warning"}`}><div><i/><strong>{statusLabel}</strong><span className="rewards-status-time">Accounting updated {ageLabel(report.updatedAt, now)}</span></div>{refreshButton}</div>
     {(snapshot.error || snapshot.data?.status === "unconfigured" || snapshot.data?.status === "unavailable" || snapshot.data?.status === "stale") && <Notice warning={!!snapshot.error || snapshot.data?.status !== "unconfigured"}>{snapshot.error?.message ?? snapshot.data?.message}</Notice>}
     <section className="rewards-distribution-summary" aria-labelledby="distribution-totals-title">
       <div className="rewards-summary-heading"><h2 id="distribution-totals-title">Across all holders</h2><span>{stale ? "Last reported totals · update delayed" : "Lifetime totals · payout service report"}</span></div>
       <div className="rewards-summary-grid">
-        <Metric label="Distributed so far" value={amount(pool?.paid, decimals)} unit={asset} note="Confirmed holder payments recorded by the keeper."/>
-        <Metric label={stale ? "Last reported pending" : "Pending distribution"} value={amount(pool?.pending, decimals)} unit={asset} note={<>{amount(pool?.allocatedPending, decimals)} {asset} allocated and unpaid · {amount(pool?.awaitingAllocation, decimals)} {asset} holder share awaiting allocation.</>}/>
-        <Metric label="Creator fees collected" value={amount(report.totals.collected, decimals)} unit={asset} note="75% goes to holders. Fees not yet collected from Pons are excluded."/>
+        <Metric label="Distributed so far" value={amount(pool?.paid, decimals)} rewardRaw={pool?.paid} unit={asset} note="Confirmed holder payments recorded by the keeper."/>
+        <Metric label={stale ? "Last reported pending" : "Pending distribution"} value={amount(pool?.pending, decimals)} rewardRaw={pool?.pending} unit={asset} note={<>{amount(pool?.allocatedPending, decimals)} {asset} allocated and unpaid · {amount(pool?.awaitingAllocation, decimals)} {asset} holder share awaiting allocation.</>}/>
+        <Metric label="Creator fees collected" value={amount(report.totals.collected, decimals)} rewardRaw={report.totals.collected} unit={asset} note="75% goes to holders. Fees not yet collected from Pons are excluded."/>
       </div>
       <p className="rewards-summary-note">{stale ? `Last keeper update: ${time(report.updatedAt)}. These amounts may have changed; a fresh report is needed to confirm current totals.` : "Pending amounts are not guaranteed to arrive in the next run. Allocation, minimum payouts and network confirmations still apply."}</p>
     </section>
-    <div className="rewards-holder-focus"><PersonalRewards report={report} wallet={wallet} stale={stale}/><section className="rewards-panel rewards-next-distribution" aria-labelledby="next-distribution-title"><div><span className="rewards-tag"><CalendarClock size={14}/>{scheduleLabel}</span><h2 id="next-distribution-title">Next distribution check</h2><strong className="rewards-countdown" role="timer" aria-live="off">{nextRun}</strong><p>{rewardsServiceMessage(report, stale)}</p></div><div><WalletIcon size={22}/><h3>Straight to your wallet</h3><p>When a distribution runs, eligible rewards are sent directly in {asset}. You don’t need to claim or keep this page open.</p><div className="rewards-minimum-payout"><Metric label="Minimum automatic payout" value={report.minimumPayout === undefined ? "Not reported" : amount(report.minimumPayout, decimals, decimals)} unit={report.minimumPayout === undefined ? undefined : asset} note={report.minimumPayout === undefined ? "The service has not reported its per-wallet minimum yet." : "Per wallet. Smaller pending rewards carry forward across distributions until this minimum is reached."}/></div><p className="rewards-timing-note">Payments are sent when a distribution runs, subject to available funds and network confirmations.</p></div></section></div>
+    <div className="rewards-holder-focus"><PersonalRewards report={report} wallet={wallet} stale={stale}/><section className="rewards-panel rewards-next-distribution" aria-labelledby="next-distribution-title"><div><span className="rewards-tag"><CalendarClock size={14}/>{scheduleLabel}</span><h2 id="next-distribution-title">Next distribution check</h2><strong className="rewards-countdown" role="timer" aria-live="off">{nextRun}</strong><p>{rewardsServiceMessage(report, stale)}</p></div><div><WalletIcon size={22}/><h3>Straight to your wallet</h3><p>When a distribution runs, eligible rewards are sent directly in {asset}. You don’t need to claim or keep this page open.</p><div className="rewards-minimum-payout"><Metric rewardRaw={report.minimumPayout} label="Minimum automatic payout" value={report.minimumPayout === undefined ? "Not reported" : amount(report.minimumPayout, decimals, decimals)} unit={report.minimumPayout === undefined ? undefined : asset} note={report.minimumPayout === undefined ? "The service has not reported its per-wallet minimum yet." : "Per wallet. Smaller pending rewards carry forward across distributions until this minimum is reached."}/></div><p className="rewards-timing-note">Payments are sent when a distribution runs, subject to available funds and network confirmations.</p></div></section></div>
     <PaymentHistory report={report} account={wallet.account}/>
     <div className="rewards-section-label"><h2>The holder pool</h2><span>All eligible holders · {asset}</span></div>
     <div className="rewards-overview"><section className="rewards-panel"><div className="rewards-heading"><div><h2>Pool overview</h2><p>75% of received creator fees goes to eligible holders.</p></div><Coins size={22}/></div>
-      <div className="rewards-total"><span>Confirmed paid to holders</span><strong>{amount(report?.totals.paidToHolders, decimals)}<small>{asset}</small></strong><p>Completed payments reported by the payout service. Pending allocations are shown separately.</p></div>
+      <div className="rewards-total"><span>Confirmed paid to holders</span><strong>{amount(report?.totals.paidToHolders, decimals)}<small>{asset}</small></strong><UsdEquivalent value={report.totals.paidToHolders}/><p>Completed payments reported by the payout service. Pending allocations are shown separately.</p></div>
       <div className="rewards-metrics">
-        <Metric label="Creator fees received" value={amount(report?.totals.collected, decimals)} unit={asset} note="Pons income recorded for the fee-receiving wallet."/>
-        <Metric label="Allocated to holders" value={amount(report?.totals.allocatedToHolders, decimals)} unit={asset} note="Includes completed and pending holder payments."/>
-        <Metric label="Awaiting holder payments" value={amount(report?.totals.reservedForHolders, decimals)} unit={asset} note="Unpaid allocations recorded by the service."/>
-        <Metric label="Developer share" value={amount(report?.totals.retainedByDeveloper, decimals)} unit={asset} note="The remaining 25% stays with the fee receiver."/>
+        <Metric label="Creator fees received" value={amount(report?.totals.collected, decimals)} rewardRaw={report?.totals.collected} unit={asset} note="Pons income recorded for the fee-receiving wallet."/>
+        <Metric label="Allocated to holders" value={amount(report?.totals.allocatedToHolders, decimals)} rewardRaw={report?.totals.allocatedToHolders} unit={asset} note="Includes completed and pending holder payments."/>
+        <Metric label="Awaiting holder payments" value={amount(report?.totals.reservedForHolders, decimals)} rewardRaw={report?.totals.reservedForHolders} unit={asset} note="Unpaid allocations recorded by the service."/>
+        <Metric label="Developer share" value={amount(report?.totals.retainedByDeveloper, decimals)} rewardRaw={report?.totals.retainedByDeveloper} unit={asset} note="The remaining 25% stays with the fee receiver."/>
       </div>
       <div className="rewards-panel-footer"><span>Fee receiver · {report ? <AddressLink address={report.feeWallet}/> : "Not configured"}</span><span>{report ? <AddressLink address={report.token} label={report.tokenSymbol}/> : "Token launch pending"}</span></div>
     </section></div>
     <section className="rewards-panel rewards-history"><div className="rewards-heading"><div><h2>Distribution history</h2><p>Collected income, snapshot allocations and automatic payment progress.</p></div><span className="rewards-tag">{report?.epochs.length ?? 0} loaded</span></div>
       {report?.epochs.length ? report.epochs.map((epoch) => <article className="rewards-epoch" key={epoch.id}><div className="rewards-epoch-heading"><div><h3>Distribution #{epoch.id}</h3><span className={`rewards-tag ${epoch.status === "attention" ? "is-warning" : ""}`}>{epoch.status === "completed" ? <Check size={11}/> : <Clock3 size={11}/>}{{ scheduled: "Awaiting payment", paying: "Sending payments", completed: "Paid", attention: "Payout delayed" }[epoch.status]}</span></div><time dateTime={epoch.createdAt}>{time(epoch.createdAt)}</time></div>
-        <div className="rewards-epoch-metrics"><Metric label="Creator fees received" value={amount(epoch.collected, decimals)} unit={asset}/><Metric label="Holder allocation" value={amount(epoch.holderBudget, decimals)} unit={asset}/><Metric label="Confirmed paid" value={amount(epoch.paid, decimals)} unit={asset}/><Metric label="Awaiting payment" value={amount(epoch.remaining, decimals)} unit={asset}/></div>
+        <div className="rewards-epoch-metrics"><Metric label="Creator fees received" value={amount(epoch.collected, decimals)} rewardRaw={epoch.collected} unit={asset}/><Metric label="Holder allocation" value={amount(epoch.holderBudget, decimals)} rewardRaw={epoch.holderBudget} unit={asset}/><Metric label="Confirmed paid" value={amount(epoch.paid, decimals)} rewardRaw={epoch.paid} unit={asset}/><Metric label="Awaiting payment" value={amount(epoch.remaining, decimals)} rewardRaw={epoch.remaining} unit={asset}/></div>
         <div className="rewards-epoch-footnote"><a className="rewards-text-button" href={`${EXPLORER}/block/${epoch.snapshotBlock}`} target="_blank" rel="noreferrer">Snapshot block {epoch.snapshotBlock}<ArrowUpRight size={11}/></a><span>{amount(epoch.eligibleSupply, report.tokenDecimals, 4)} eligible {report.tokenSymbol}</span></div>
       </article>) : <div className="rewards-empty"><FileCheck2 size={28}/><h3>The first payout starts the record.</h3><p>{report ? "No distributions have been reported yet. Payments start when creator fees are collected and a funded holder snapshot is prepared." : "Rewards are not live yet. Real income, holder allocations and completed payments will appear here once available."}</p></div>}
       {(cursors.length > 0 || report?.nextCursor) && <div className="rewards-panel-footer"><button className="rewards-text-button" disabled={!cursors.length || snapshot.isFetching} onClick={() => setPagination({ account: wallet.account, cursors: cursors.slice(0, -1) })}>Newer distributions</button><span>Showing the loaded distribution page.</span><button className="rewards-text-button" disabled={!report?.nextCursor || snapshot.isFetching} onClick={() => { if (report?.nextCursor) setPagination({ account: wallet.account, cursors: [...cursors, report.nextCursor] }); }}>Older distributions<ArrowRight size={12}/></button></div>}
@@ -177,5 +187,5 @@ export function TokenRewards({ wallet, now }: { wallet: WalletState; now: number
         <section className="rewards-flow" aria-label="How automatic rewards work"><div><Coins size={25}/><h3>1. Trading generates creator fees</h3><p>Pons sends the creator’s share to the configured fee-receiving wallet.</p></div><div><Users size={25}/><h3>2. Holdings determine each allocation</h3><p>The payout service records eligible holdings. Your share is your snapshot balance divided by the total eligible balance.</p></div><div><WalletIcon size={25}/><h3>3. Payments reach your wallet</h3><p>The service sends holder allocations automatically. Completed transfers appear in your payment history.</p></div></section>
     </details>
     <div className="rewards-workspace-footer"><span>Balances and allocations are reported by the payout service. Confirmed payment receipts can be inspected onchain.</span>{report ? <AddressLink address={report.feeWallet} label="View fee receiver"/> : <a className="rewards-text-button" href={EXPLORER} target="_blank" rel="noreferrer">Robinhood Chain explorer<ArrowUpRight size={12}/></a>}</div>
-  </div>;
+  </div></RewardPriceContext.Provider>;
 }
