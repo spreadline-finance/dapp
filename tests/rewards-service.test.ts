@@ -250,3 +250,15 @@ test("reward estimate separates pending allocations and respects cumulative roun
   report.wallet!.eligibleWeight = "0";
   assert.equal(estimatedAdditionalReward(report, false), "0");
 });
+
+import { distributionTotals } from "../src/lib/rewards-preview";
+test("overall pending includes only unpaid allocations and the unallocated holder share, with cumulative rounding", () => {
+  const report = document();
+  assert.deepEqual(distributionTotals(report), { paid: "1", allocatedPending: "2", awaitingAllocation: "2", pending: "4" });
+  // Paging and wallet selection cannot change lifetime amounts.
+  report.epochs = [];
+  report.wallet = null;
+  assert.equal(distributionTotals(report).pending, "4");
+  report.totals = { collected: "100", allocatedToHolders: "75", paidToHolders: "75", reservedForHolders: "0", retainedByDeveloper: "25", unallocated: "0" };
+  assert.deepEqual(distributionTotals(report), { paid: "75", allocatedPending: "0", awaitingAllocation: "0", pending: "0" });
+});

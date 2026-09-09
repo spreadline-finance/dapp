@@ -23,3 +23,13 @@ export function estimatedAdditionalReward(report: RewardsReport, stale: boolean)
   const budget = collected * BigInt(7500) / BigInt(10000) - booked * BigInt(7500) / BigInt(10000);
   return (budget * BigInt(wallet.eligibleWeight) / BigInt(wallet.totalEligibleWeight)).toString();
 }
+
+/** Lifetime holder totals from validated keeper accounting, independent of the loaded epoch page. */
+export function distributionTotals(report: RewardsReport) {
+  const paid = BigInt(report.totals.paidToHolders);
+  const allocatedPending = BigInt(report.totals.reservedForHolders);
+  const collected = BigInt(report.totals.collected);
+  const booked = collected - BigInt(report.totals.unallocated);
+  const awaitingAllocation = collected * BigInt(7500) / BigInt(10000) - booked * BigInt(7500) / BigInt(10000);
+  return { paid: String(paid), allocatedPending: String(allocatedPending), awaitingAllocation: String(awaitingAllocation), pending: String(allocatedPending + awaitingAllocation) };
+}

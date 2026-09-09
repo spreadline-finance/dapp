@@ -8,7 +8,7 @@ import { formatUnits } from "viem";
 import { ageLabel, DataError, getData, pollingInterval, shortAddress } from "@/lib/live-api";
 import { sourceIsCurrent } from "@/lib/live-freshness";
 import { CHAIN_ID, EXPLORER } from "@/lib/market-types";
-import { distributionCountdown, estimatedAdditionalReward } from "@/lib/rewards-preview";
+import { distributionCountdown, distributionTotals, estimatedAdditionalReward } from "@/lib/rewards-preview";
 import type { RewardsReport, RewardsSnapshot } from "@/lib/rewards-types";
 import { WalletButton, type WalletState } from "./wallet";
 import { SpreadTokenIcon } from "./spread-token";
@@ -132,6 +132,7 @@ export function TokenRewards({ wallet, now }: { wallet: WalletState; now: number
   const asset = report?.rewardAsset.symbol ?? "ETH / USDG", decimals = report?.rewardAsset.decimals ?? 18;
   const stale = !!snapshot.error || snapshot.data?.status === "stale" || !sourceIsCurrent(report?.updatedAt, now, 20 * 60000);
   const serviceCurrent = snapshot.data?.status === "reported" && !stale;
+  const pool = report ? distributionTotals(report) : null;
   const nextRun = report ? distributionCountdown(report, now, stale) : "After service setup";
   const statusLabel = snapshot.isPending ? "Reading payout service" : snapshot.data?.status === "unconfigured" ? "Payout setup pending" : !report ? "Payout data unavailable" : stale ? "Last available service report" : report.status === "ready" ? "Payout service reporting" : report.status === "paused" ? "Payouts paused" : "Payout service needs attention";
   const refreshWait = snapshot.error instanceof DataError ? Math.max(0, Math.ceil((snapshot.error.retryAt - now) / 1000)) : 0;
@@ -155,6 +156,15 @@ export function TokenRewards({ wallet, now }: { wallet: WalletState; now: number
     {report.intervalSeconds === 30 && <Notice>Test schedule: checks every 30 seconds. Payments still require collected fees, confirmations and the minimum payout.</Notice>}
     <div className={`rewards-status ${serviceCurrent && report.status === "ready" ? "is-current" : "is-warning"}`}><div><i/><strong>{statusLabel}</strong><span className="rewards-status-time">Updated {ageLabel(report.updatedAt, now)}</span></div>{refreshButton}</div>
     {(snapshot.error || snapshot.data?.status === "unconfigured" || snapshot.data?.status === "unavailable" || snapshot.data?.status === "stale") && <Notice warning={!!snapshot.error || snapshot.data?.status !== "unconfigured"}>{snapshot.error?.message ?? snapshot.data?.message}</Notice>}
+    <section className="rewards-distribution-summary" aria-labelledby="distribution-totals-title">
+      <div className="rewards-summary-heading"><h2 id="distribution-totals-title">Across all holders</h2><span>{stale ? "Last reported totals · update delayed" : "Lifetime totals · payout service report"}</span></div>
+      <div className="rewards-summary-grid">
+        <Metric label="Distributed so far" value={amount(pool?.paid, decimals)} unit={asset} note="Confirmed holder payments recorded by the keeper."/>
+        <Metric label="Pending distribution" value={amount(pool?.pending, decimals)} unit={asset} note={<>{amount(pool?.allocatedPending, decimals)} {asset} allocated and unpaid · {amount(pool?.awaitingAllocation, decimals)} {asset} holder share awaiting allocation.</>}/>
+        <Metric label="Creator fees collected" value={amount(report.totals.collected, decimals)} unit={asset} note="75% goes to holders. Fees not yet collected from Pons are excluded."/>
+      </div>
+      <p className="rewards-summary-note">{stale ? `Last keeper update: ${time(report.updatedAt)}. These amounts may have changed; a fresh report is needed to confirm current totals.` : "Pending amounts are not guaranteed to arrive in the next run. Allocation, minimum payouts and network confirmations still apply."}</p>
+    </section>
     <div className="rewards-holder-focus"><PersonalRewards report={report} wallet={wallet} stale={stale}/><section className="rewards-panel rewards-next-distribution" aria-labelledby="next-distribution-title"><div><span className="rewards-tag"><CalendarClock size={14}/>Every {interval(report.intervalSeconds)}</span><h2 id="next-distribution-title">Next distribution check</h2><strong className="rewards-countdown" role="timer" aria-live="off">{nextRun}</strong><p>{serviceMessage(report, stale)}</p></div><div><WalletIcon size={22}/><h3>Straight to your wallet</h3><p>When payouts are running, eligible rewards arrive automatically in {asset}. You don’t need to claim or keep this page open.</p><p className="rewards-timing-note">The countdown is for the next service check. Arrival depends on available fees, the minimum payout and network confirmations.</p></div></section></div>
     <PaymentHistory report={report} account={wallet.account}/>
     <div className="rewards-section-label"><h2>The holder pool</h2><span>All eligible holders · {asset}</span></div>
