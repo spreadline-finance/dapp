@@ -31,6 +31,7 @@ function time(value: string | null | undefined) {
   return Number.isFinite(date.getTime()) ? date.toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "Awaiting schedule";
 }
 function interval(seconds: number) {
+  if (seconds < 60) return `${seconds} seconds`;
   if (seconds % 86400 === 0) return `${seconds / 86400} day${seconds === 86400 ? "" : "s"}`;
   if (seconds % 3600 === 0) return `${seconds / 3600} hour${seconds === 3600 ? "" : "s"}`;
   return `${seconds / 60} minutes`;
@@ -147,6 +148,7 @@ export function TokenRewards({ wallet, now }: { wallet: WalletState; now: number
   }
   return <div className="rewards-workspace">
     <RewardsIntroduction/>
+    {report.intervalSeconds === 30 && <Notice>Test schedule: checks every 30 seconds. Payments still require collected fees, confirmations and the minimum payout.</Notice>}
     <div className={`rewards-status ${serviceCurrent ? "is-current" : ""}`}><div><i/><strong>{statusLabel}</strong><span className="rewards-status-time">Updated {ageLabel(report.updatedAt, now)}</span></div>{refreshButton}</div>
     {(snapshot.error || snapshot.data?.status === "unconfigured" || snapshot.data?.status === "unavailable" || snapshot.data?.status === "stale") && <Notice warning={!!snapshot.error || snapshot.data?.status !== "unconfigured"}>{snapshot.error?.message ?? snapshot.data?.message}</Notice>}
     <div className="rewards-overview"><section className="rewards-panel"><div className="rewards-heading"><div><h2>Holder distributions</h2><p>75% of received creator fees goes to eligible holders.</p></div><Coins size={22}/></div>

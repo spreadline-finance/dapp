@@ -28,7 +28,7 @@ const reportSchema = z.object({
   version: z.literal(1), model: z.literal("wallet-keeper"), chainId: z.literal(4663),
   token: nonzeroAddress, tokenSymbol: z.string().min(1).max(32).regex(/^[\p{L}\p{N}$._ -]+$/u), tokenDecimals: z.number().int().min(0).max(18),
   rewardAsset: z.object({ address, symbol: z.enum(["ETH", "USDG"]), decimals: z.union([z.literal(6), z.literal(18)]) }).strict(),
-  feeWallet: nonzeroAddress, holderBps: z.literal(7500), developerBps: z.literal(2500), intervalSeconds: z.literal(900),
+  feeWallet: nonzeroAddress, holderBps: z.literal(7500), developerBps: z.literal(2500), intervalSeconds: z.union([z.literal(30), z.literal(900)]),
   status: z.enum(["ready", "paused", "attention"]),
   statusReason: z.enum(["none", "paused", "insufficient-funds", "gas-unavailable", "rpc-unavailable", "payment-pending", "operator-attention"]),
   updatedAt: timestamp, nextRunAt: timestamp.nullable(), balanceAsOfBlock: positiveRaw,

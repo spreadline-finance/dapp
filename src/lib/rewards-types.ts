@@ -12,7 +12,7 @@ export type RewardsReport = {
   feeWallet: Address;
   holderBps: 7500;
   developerBps: 2500;
-  intervalSeconds: 900;
+  intervalSeconds: 30 | 900;
   status: "ready" | "paused" | "attention";
   statusReason: "none" | "paused" | "insufficient-funds" | "gas-unavailable" | "rpc-unavailable" | "payment-pending" | "operator-attention";
   updatedAt: string;

@@ -211,3 +211,11 @@ test("unbounded history and arbitrary exclusion data are rejected", () => {
   }
   const duplicate = document(); duplicate.exclusions.push(duplicate.exclusions[0]); assert.throws(() => validateRewardsReport(duplicate));
 });
+
+test("30-second test reports are accepted without changing the fee policy", async () => {
+  const mock = mockReports(() => ({ ...document(), intervalSeconds: 30 }));
+  const result = await createRewardsService(config, mock.fetcher).snapshot();
+  assert.equal(result.status, "reported");
+  assert.equal(result.report?.intervalSeconds, 30);
+  assert.equal(result.report?.holderBps, 7500);
+});
