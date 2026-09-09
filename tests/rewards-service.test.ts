@@ -220,7 +220,7 @@ test("30-second test reports are accepted without changing the fee policy", asyn
   assert.equal(result.report?.holderBps, 7500);
 });
 
-import { distributionCountdown, estimatedAdditionalReward } from "../src/lib/rewards-preview";
+import { distributionCountdown, estimatedAdditionalReward, rewardsServiceMessage } from "../src/lib/rewards-preview";
 
 test("distribution countdown ticks and never invents another schedule when overdue or blocked", () => {
   const now = Date.now(), report = document(now);
@@ -261,4 +261,48 @@ test("overall pending includes only unpaid allocations and the unallocated holde
   assert.equal(distributionTotals(report).pending, "4");
   report.totals = { collected: "100", allocatedToHolders: "75", paidToHolders: "75", reservedForHolders: "0", retainedByDeveloper: "25", unallocated: "0" };
   assert.deepEqual(distributionTotals(report), { paid: "75", allocatedPending: "0", awaitingAllocation: "0", pending: "0" });
+});
+
+test("execution mode accepts legacy reports, rejects arbitrary modes and keeps wallet lookups consistent", async () => {
+  assert.equal(validateRewardsReport(document()).executionMode, undefined);
+  for (const executionMode of ["manual", "automatic", "report-only"] as const) {
+    const report = validateRewardsReport({ ...document(), executionMode });
+    assert.equal(report.executionMode, executionMode);
+  }
+  assert.throws(() => validateRewardsReport({ ...document(), executionMode: "user-selected-executor" }));
+  const mismatch = mockReports(url => ({ ...(url.searchParams.has("wallet") ? personal() : document()), executionMode: url.searchParams.has("wallet") ? "automatic" : "manual" }));
+  assert.equal((await createRewardsService(config, mismatch.fetcher).snapshot(alice)).status, "unavailable");
+});
+
+test("manual and reporting-only modes never promise a scheduled distribution or erase pending totals", () => {
+  const now = Date.now(), report = document(now);
+  const before = distributionTotals(report);
+  report.executionMode = "manual";
+  assert.equal(distributionCountdown(report, now, false), "Operator-triggered");
+  assert.equal(distributionCountdown(report, now + 900000, false), "Operator-triggered");
+  assert.match(rewardsServiceMessage(report, false), /operator starts each distribution check/);
+  report.status = "paused";
+  assert.equal(distributionCountdown(report, now, false), "Operator-triggered");
+  assert.deepEqual(distributionTotals(report), before);
+  report.executionMode = "report-only";
+  assert.equal(distributionCountdown(report, now, false), "Payouts not running");
+  assert.match(rewardsServiceMessage(report, false), /payout process is not running/);
+  assert.equal(distributionCountdown(report, now, true), "Awaiting service update");
+  assert.match(rewardsServiceMessage(report, true), /last recorded amounts/);
+  assert.deepEqual(distributionTotals(report), before);
+});
+
+test("submitted transactions and specific funding failures remain visible in manual mode", () => {
+  const now = Date.now(), report = document(now);
+  report.executionMode = "manual";
+  report.status = "attention";
+  report.statusReason = "payment-pending";
+  assert.equal(distributionCountdown(report, now, false), "Confirming transaction");
+  assert.match(rewardsServiceMessage(report, false), /submitted transaction to confirm/);
+  report.statusReason = "gas-unavailable";
+  assert.equal(distributionCountdown(report, now, false), "Waiting for transaction fees");
+  assert.match(rewardsServiceMessage(report, false), /available gas budget/);
+  report.statusReason = "operator-attention";
+  assert.equal(distributionCountdown(report, now, false), "Delayed · needs attention");
+  assert.match(rewardsServiceMessage(report, false), /operator’s attention/);
 });

@@ -29,6 +29,7 @@ const reportSchema = z.object({
   token: nonzeroAddress, tokenSymbol: z.string().min(1).max(32).regex(/^[\p{L}\p{N}$._ -]+$/u), tokenDecimals: z.number().int().min(0).max(18),
   rewardAsset: z.object({ address, symbol: z.enum(["ETH", "USDG"]), decimals: z.union([z.literal(6), z.literal(18)]) }).strict(),
   feeWallet: nonzeroAddress, holderBps: z.literal(7500), developerBps: z.literal(2500), intervalSeconds: z.union([z.literal(30), z.literal(900)]),
+  executionMode: z.enum(["manual", "automatic", "report-only"]).optional(),
   status: z.enum(["ready", "paused", "attention"]),
   statusReason: z.enum(["none", "paused", "insufficient-funds", "gas-unavailable", "rpc-unavailable", "payment-pending", "operator-attention"]),
   updatedAt: timestamp, nextRunAt: timestamp.nullable(), balanceAsOfBlock: positiveRaw,
@@ -94,5 +95,6 @@ export function sameRewardsReportIdentity(left: RewardsReport, right: RewardsRep
     && same(left.token, right.token) && left.tokenSymbol === right.tokenSymbol && left.tokenDecimals === right.tokenDecimals
     && same(left.feeWallet, right.feeWallet) && same(left.rewardAsset.address, right.rewardAsset.address)
     && left.rewardAsset.symbol === right.rewardAsset.symbol && left.rewardAsset.decimals === right.rewardAsset.decimals
-    && left.holderBps === right.holderBps && left.developerBps === right.developerBps && left.intervalSeconds === right.intervalSeconds;
+    && left.holderBps === right.holderBps && left.developerBps === right.developerBps && left.intervalSeconds === right.intervalSeconds
+    && left.executionMode === right.executionMode;
 }

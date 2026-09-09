@@ -8,7 +8,7 @@ import { formatUnits } from "viem";
 import { ageLabel, DataError, getData, pollingInterval, shortAddress } from "@/lib/live-api";
 import { sourceIsCurrent } from "@/lib/live-freshness";
 import { CHAIN_ID, EXPLORER } from "@/lib/market-types";
-import { distributionCountdown, distributionTotals, estimatedAdditionalReward } from "@/lib/rewards-preview";
+import { distributionCountdown, distributionTotals, estimatedAdditionalReward, rewardsServiceMessage } from "@/lib/rewards-preview";
 import type { RewardsReport, RewardsSnapshot } from "@/lib/rewards-types";
 import { WalletButton, type WalletState } from "./wallet";
 import { SpreadTokenIcon } from "./spread-token";
@@ -44,7 +44,7 @@ function AddressLink({ address, label }: { address: string; label?: string }) {
   return <a className="rewards-address" href={`${EXPLORER}/address/${address}`} target="_blank" rel="noreferrer" title={address}>{label ?? shortAddress(address)}<ArrowUpRight size={12}/></a>;
 }
 function RewardsIntroduction({ report }: { report?: RewardsReport }) {
-  if (report) return <header className="rewards-page-header"><div className="rewards-page-title"><SpreadTokenIcon size={40}/><div><span>HOLDER REWARDS · {report.tokenSymbol}</span><h1>Token rewards</h1></div></div><p>Your share of creator fees, delivered automatically.</p></header>;
+  if (report) return <header className="rewards-page-header"><div className="rewards-page-title"><SpreadTokenIcon size={40}/><div><span>HOLDER REWARDS · {report.tokenSymbol}</span><h1>Token rewards</h1></div></div><p>Your share of creator fees, sent directly to your wallet.</p></header>;
   return <section className="rewards-brand-hero" aria-labelledby="spread-rewards-title">
     <div className="rewards-brand-copy">
       <div className="rewards-token-identity"><SpreadTokenIcon size={48}/><span><strong>SPREAD</strong><span>Spreadline token rewards</span></span></div>
@@ -75,22 +75,6 @@ function RewardsLaunchGuide() {
 function Metric({ label, value, unit, note }: { label: string; value: string; unit?: string; note?: ReactNode }) {
   return <div className="rewards-metric"><span>{label}</span><strong>{value}{unit && <> <small>{unit}</small></>}</strong>{note && <p>{note}</p>}</div>;
 }
-function serviceMessage(report: RewardsReport | null, stale: boolean) {
-  if (!report) return "Token and payout service configuration is pending.";
-  if (stale) return "The payout service has not provided a recent update. The schedule and amounts below may be out of date.";
-  const reasons: Record<RewardsReport["statusReason"], string> = {
-    none: "", paused: "Automatic payouts are paused.", "insufficient-funds": "The payout wallet needs funds before payments can continue.",
-    "gas-unavailable": "The payout wallet needs ETH for transaction fees.", "rpc-unavailable": "The payout service cannot read the network right now.",
-    "payment-pending": "Waiting for a submitted payment to confirm.", "operator-attention": "The payout service needs attention before it can continue.",
-  };
-  if (reasons[report.statusReason]) return reasons[report.statusReason];
-  if (report.status === "paused") return "Automatic payouts are paused.";
-  if (report.status === "attention") return "The payout service needs attention before it can continue.";
-  if (BigInt(report.totals.collected) === BigInt(0)) return "Waiting for creator fees. Automatic payouts begin when income is available.";
-  if (BigInt(report.totals.unallocated) === BigInt(0) && BigInt(report.totals.reservedForHolders) === BigInt(0)) return "Waiting for new creator fees. Previous holder allocations have been paid.";
-  return "The service checks available fees and sends funded holder allocations automatically.";
-}
-
 function PersonalRewards({ report, wallet, stale }: { report: RewardsReport; wallet: WalletState; stale: boolean }) {
   const personal = report.wallet?.address.toLowerCase() === wallet.account?.toLowerCase() ? report.wallet : null;
   const asset = report.rewardAsset.symbol, decimals = report.rewardAsset.decimals;
@@ -134,7 +118,8 @@ export function TokenRewards({ wallet, now }: { wallet: WalletState; now: number
   const serviceCurrent = snapshot.data?.status === "reported" && !stale;
   const pool = report ? distributionTotals(report) : null;
   const nextRun = report ? distributionCountdown(report, now, stale) : "After service setup";
-  const statusLabel = snapshot.isPending ? "Reading payout service" : snapshot.data?.status === "unconfigured" ? "Payout setup pending" : !report ? "Payout data unavailable" : stale ? "Last available service report" : report.status === "ready" ? "Payout service reporting" : report.status === "paused" ? "Payouts paused" : "Payout service needs attention";
+  const scheduleLabel = report?.executionMode === "manual" ? "Operator-triggered" : report?.executionMode === "report-only" ? "Reporting only" : `Every ${interval(report?.intervalSeconds ?? 900)}`;
+  const statusLabel = snapshot.isPending ? "Reading payout service" : snapshot.data?.status === "unconfigured" ? "Payout setup pending" : !report ? "Payout data unavailable" : stale ? "Last available service report" : report.statusReason === "payment-pending" ? "Transaction awaiting confirmation" : report.status === "attention" ? "Payout service needs attention" : report.executionMode === "report-only" ? "Reporting connected · payouts not running" : report.executionMode === "manual" ? "Operator-triggered distributions" : report.status === "ready" ? "Payout service reporting" : "Payouts paused";
   const refreshWait = snapshot.error instanceof DataError ? Math.max(0, Math.ceil((snapshot.error.retryAt - now) / 1000)) : 0;
   const refreshButton = <button className="rewards-button" disabled={snapshot.isFetching || refreshWait > 0} onClick={() => void snapshot.refetch()}><RefreshCw size={14} className={snapshot.isFetching ? "spin" : ""}/>{snapshot.isFetching ? "Updating…" : refreshWait ? `Retry in ${refreshWait}s` : "Refresh"}</button>;
   if (!report) {
@@ -153,19 +138,19 @@ export function TokenRewards({ wallet, now }: { wallet: WalletState; now: number
   }
   return <div className="rewards-workspace">
     <RewardsIntroduction report={report}/>
-    {report.intervalSeconds === 30 && <Notice>Test schedule: checks every 30 seconds. Payments still require collected fees, confirmations and the minimum payout.</Notice>}
-    <div className={`rewards-status ${serviceCurrent && report.status === "ready" ? "is-current" : "is-warning"}`}><div><i/><strong>{statusLabel}</strong><span className="rewards-status-time">Updated {ageLabel(report.updatedAt, now)}</span></div>{refreshButton}</div>
+    {report.intervalSeconds === 30 && report.executionMode !== "manual" && report.executionMode !== "report-only" && <Notice>Test schedule: checks every 30 seconds. Payments still require collected fees, confirmations and the minimum payout.</Notice>}
+    <div className={`rewards-status ${serviceCurrent && report.status === "ready" && report.executionMode !== "report-only" ? "is-current" : "is-warning"}`}><div><i/><strong>{statusLabel}</strong><span className="rewards-status-time">Accounting updated {ageLabel(report.updatedAt, now)}</span></div>{refreshButton}</div>
     {(snapshot.error || snapshot.data?.status === "unconfigured" || snapshot.data?.status === "unavailable" || snapshot.data?.status === "stale") && <Notice warning={!!snapshot.error || snapshot.data?.status !== "unconfigured"}>{snapshot.error?.message ?? snapshot.data?.message}</Notice>}
     <section className="rewards-distribution-summary" aria-labelledby="distribution-totals-title">
       <div className="rewards-summary-heading"><h2 id="distribution-totals-title">Across all holders</h2><span>{stale ? "Last reported totals · update delayed" : "Lifetime totals · payout service report"}</span></div>
       <div className="rewards-summary-grid">
         <Metric label="Distributed so far" value={amount(pool?.paid, decimals)} unit={asset} note="Confirmed holder payments recorded by the keeper."/>
-        <Metric label="Pending distribution" value={amount(pool?.pending, decimals)} unit={asset} note={<>{amount(pool?.allocatedPending, decimals)} {asset} allocated and unpaid · {amount(pool?.awaitingAllocation, decimals)} {asset} holder share awaiting allocation.</>}/>
+        <Metric label={stale ? "Last reported pending" : "Pending distribution"} value={amount(pool?.pending, decimals)} unit={asset} note={<>{amount(pool?.allocatedPending, decimals)} {asset} allocated and unpaid · {amount(pool?.awaitingAllocation, decimals)} {asset} holder share awaiting allocation.</>}/>
         <Metric label="Creator fees collected" value={amount(report.totals.collected, decimals)} unit={asset} note="75% goes to holders. Fees not yet collected from Pons are excluded."/>
       </div>
       <p className="rewards-summary-note">{stale ? `Last keeper update: ${time(report.updatedAt)}. These amounts may have changed; a fresh report is needed to confirm current totals.` : "Pending amounts are not guaranteed to arrive in the next run. Allocation, minimum payouts and network confirmations still apply."}</p>
     </section>
-    <div className="rewards-holder-focus"><PersonalRewards report={report} wallet={wallet} stale={stale}/><section className="rewards-panel rewards-next-distribution" aria-labelledby="next-distribution-title"><div><span className="rewards-tag"><CalendarClock size={14}/>Every {interval(report.intervalSeconds)}</span><h2 id="next-distribution-title">Next distribution check</h2><strong className="rewards-countdown" role="timer" aria-live="off">{nextRun}</strong><p>{serviceMessage(report, stale)}</p></div><div><WalletIcon size={22}/><h3>Straight to your wallet</h3><p>When payouts are running, eligible rewards arrive automatically in {asset}. You don’t need to claim or keep this page open.</p><p className="rewards-timing-note">The countdown is for the next service check. Arrival depends on available fees, the minimum payout and network confirmations.</p></div></section></div>
+    <div className="rewards-holder-focus"><PersonalRewards report={report} wallet={wallet} stale={stale}/><section className="rewards-panel rewards-next-distribution" aria-labelledby="next-distribution-title"><div><span className="rewards-tag"><CalendarClock size={14}/>{scheduleLabel}</span><h2 id="next-distribution-title">Next distribution check</h2><strong className="rewards-countdown" role="timer" aria-live="off">{nextRun}</strong><p>{rewardsServiceMessage(report, stale)}</p></div><div><WalletIcon size={22}/><h3>Straight to your wallet</h3><p>When a distribution runs, eligible rewards are sent directly in {asset}. You don’t need to claim or keep this page open.</p><p className="rewards-timing-note">Checks can be scheduled or started by the operator. Arrival depends on available fees, the minimum payout and network confirmations.</p></div></section></div>
     <PaymentHistory report={report} account={wallet.account}/>
     <div className="rewards-section-label"><h2>The holder pool</h2><span>All eligible holders · {asset}</span></div>
     <div className="rewards-overview"><section className="rewards-panel"><div className="rewards-heading"><div><h2>Pool overview</h2><p>75% of received creator fees goes to eligible holders.</p></div><Coins size={22}/></div>
@@ -187,7 +172,7 @@ export function TokenRewards({ wallet, now }: { wallet: WalletState; now: number
     </section>
     <details className="rewards-panel rewards-policy"><summary><span>How rewards work</span><span>75% holders · 25% developer</span><ChevronDown size={16}/></summary><div className="rewards-heading"><div><h2>One fee pool. Two shares.</h2><p>The split applies to creator fees received, before allocating each holder’s proportional share. The fee receiver’s token holdings also participate in the 75% holder pool, in addition to its 25% developer share.</p></div><span className="rewards-tag">Fixed 75 / 25</span></div>
       <div className="rewards-split"><div className="rewards-split-track" role="img" aria-label="75 percent to eligible token holders and 25 percent retained by the fee receiver"><span/><span/></div><div className="rewards-split-labels"><div><strong>75%</strong><span>Token holders</span><p>Paid in proportion to eligible snapshot holdings.</p></div><div><strong>25%</strong><span>Fee receiver / developer</span><p>Retained in the fee-receiving wallet.</p></div></div></div>
-      <div className="rewards-schedule"><div><span><CalendarClock size={14}/>Payout interval</span><strong>Every {interval(report?.intervalSeconds ?? 900)}</strong><p>Scheduled checks require collected fees and an operating payout service.</p></div><div><span><Clock3 size={14}/>Next scheduled run</span><strong>{nextRun}</strong><p>{serviceMessage(report, stale)}</p></div><div><span><Coins size={14}/>Payout asset</span><strong>{report ? report.rewardAsset.symbol : "Set at token launch"}</strong><p>Rewards are paid in the fee asset: ETH or USDG.</p></div></div>
+      <div className="rewards-schedule"><div><span><CalendarClock size={14}/>Distribution mode</span><strong>{scheduleLabel}</strong><p>Each check requires an operating payout service. Available fees, funding and minimum amounts determine whether it sends a payment.</p></div><div><span><Clock3 size={14}/>Next distribution check</span><strong>{nextRun}</strong><p>{rewardsServiceMessage(report, stale)}</p></div><div><span><Coins size={14}/>Payout asset</span><strong>{report ? report.rewardAsset.symbol : "Set at token launch"}</strong><p>Rewards are paid in the fee asset: ETH or USDG.</p></div></div>
       {report && <details className="rewards-eligibility"><summary>Which holdings are eligible?</summary><p>The service calculates each share from the snapshot’s eligible token balance. The following addresses are excluded from holder allocations.</p>{report.exclusions.length ? <ul>{report.exclusions.map((entry) => <li key={entry.address}><AddressLink address={entry.address}/><span>{entry.reason}</span></li>)}</ul> : <p>No excluded addresses are listed in the current service report.</p>}</details>}
         <section className="rewards-flow" aria-label="How automatic rewards work"><div><Coins size={25}/><h3>1. Trading generates creator fees</h3><p>Pons sends the creator’s share to the configured fee-receiving wallet.</p></div><div><Users size={25}/><h3>2. Holdings determine each allocation</h3><p>The payout service records eligible holdings. Your share is your snapshot balance divided by the total eligible balance.</p></div><div><WalletIcon size={25}/><h3>3. Payments reach your wallet</h3><p>The service sends holder allocations automatically. Completed transfers appear in your payment history.</p></div></section>
     </details>

@@ -13,6 +13,8 @@ export type RewardsReport = {
   holderBps: 7500;
   developerBps: 2500;
   intervalSeconds: 30 | 900;
+  /** Live service capability; absent on older reports. It does not refresh ledger accounting. */
+  executionMode?: "manual" | "automatic" | "report-only";
   status: "ready" | "paused" | "attention";
   statusReason: "none" | "paused" | "insufficient-funds" | "gas-unavailable" | "rpc-unavailable" | "payment-pending" | "operator-attention";
   updatedAt: string;

@@ -2,8 +2,14 @@ import type { RewardsReport } from "./rewards-types";
 
 export function distributionCountdown(report: RewardsReport, now: number, stale: boolean): string {
   if (stale || !now) return "Awaiting service update";
-  if (report.status === "paused") return "Paused";
+  if (report.statusReason === "payment-pending") return "Confirming transaction";
+  if (report.statusReason === "gas-unavailable") return "Waiting for transaction fees";
+  if (report.statusReason === "insufficient-funds") return "Waiting for payout funding";
+  if (report.statusReason === "rpc-unavailable") return "Waiting for network connection";
   if (report.status === "attention" || report.statusReason === "operator-attention") return "Delayed · needs attention";
+  if (report.executionMode === "report-only") return "Payouts not running";
+  if (report.executionMode === "manual") return "Operator-triggered";
+  if (report.status === "paused") return "Paused";
   if (report.statusReason !== "none") return "Waiting for service readiness";
   if (!report.nextRunAt) return "Awaiting schedule";
   const seconds = Math.ceil((Date.parse(report.nextRunAt) - now) / 1000);
@@ -11,6 +17,26 @@ export function distributionCountdown(report: RewardsReport, now: number, stale:
   if (seconds <= 0) return "Due · awaiting service update";
   const hours = Math.floor(seconds / 3600);
   return `${hours ? `${hours}h ` : ""}${Math.floor(seconds % 3600 / 60)}m ${String(seconds % 60).padStart(2, "0")}s`;
+}
+
+export function rewardsServiceMessage(report: RewardsReport | null, stale: boolean): string {
+  if (!report) return "Token and payout service configuration is pending.";
+  if (stale) return "The accounting report is out of date. Displayed totals are the last recorded amounts; a payment time cannot be confirmed.";
+  const reasons: Record<RewardsReport["statusReason"], string> = {
+    none: "", paused: "", "insufficient-funds": "The payout wallet needs funds before payments can continue.",
+    "gas-unavailable": "Distribution is waiting for transaction-fee funding or available gas budget.",
+    "rpc-unavailable": "The payout service cannot read the network right now.",
+    "payment-pending": "The service is waiting for a submitted transaction to confirm. Payments count as received only after confirmation.",
+    "operator-attention": "The payout service needs the operator’s attention before it can continue.",
+  };
+  if (reasons[report.statusReason]) return reasons[report.statusReason];
+  if (report.status === "attention") return "The payout service needs the operator’s attention before it can continue.";
+  if (report.executionMode === "report-only") return "The report is connected, but the payout process is not running. The operator needs to enable it before distributions can continue.";
+  if (report.executionMode === "manual") return "The operator starts each distribution check. There is no automatic countdown in this mode. Eligible payments still arrive directly in your wallet; you do not need to claim.";
+  if (report.status === "paused" || report.statusReason === "paused") return "Automatic distribution checks are paused. Recorded pending rewards remain unpaid until the service resumes.";
+  if (BigInt(report.totals.collected) === BigInt(0)) return "No creator fees have been collected into the payout ledger yet. Fees still on Pons are not included in these totals.";
+  if (BigInt(report.totals.unallocated) === BigInt(0) && BigInt(report.totals.reservedForHolders) === BigInt(0)) return "Previous holder allocations have been paid. The next check looks for newly available creator fees.";
+  return "The next check collects available fees and sends funded allocations that meet the minimum payout. Pending rewards below the minimum carry forward.";
 }
 
 /** Additional unallocated income only; preserve the keeper's cumulative 75% rounding. */
