@@ -378,15 +378,15 @@ test("manual and reporting-only modes never promise a scheduled distribution or 
   const now = Date.now(), report = document(now);
   const before = distributionTotals(report);
   report.executionMode = "manual";
-  assert.equal(distributionCountdown(report, now, false), "Operator-triggered");
-  assert.equal(distributionCountdown(report, now + 900000, false), "Operator-triggered");
-  assert.match(rewardsServiceMessage(report, false), /operator starts each distribution check/);
+  assert.equal(distributionCountdown(report, now, false), "Every 5 minutes");
+  assert.equal(distributionCountdown(report, now + 900000, false), "Every 5 minutes");
+  assert.match(rewardsServiceMessage(report, false), /periodically every 5 minutes/);
   report.status = "paused";
-  assert.equal(distributionCountdown(report, now, false), "Operator-triggered");
+  assert.equal(distributionCountdown(report, now, false), "Every 5 minutes");
   assert.deepEqual(distributionTotals(report), before);
   report.executionMode = "report-only";
   assert.equal(distributionCountdown(report, now, false), "Payouts not running");
-  assert.match(rewardsServiceMessage(report, false), /payout process is not running/);
+  assert.match(rewardsServiceMessage(report, false), /periodic payouts are not running yet/);
   assert.equal(distributionCountdown(report, now, true), "Awaiting service update");
   assert.match(rewardsServiceMessage(report, true), /last recorded amounts/);
   assert.deepEqual(distributionTotals(report), before);
@@ -404,5 +404,5 @@ test("submitted transactions and specific funding failures remain visible in man
   assert.match(rewardsServiceMessage(report, false), /available gas budget/);
   report.statusReason = "operator-attention";
   assert.equal(distributionCountdown(report, now, false), "Delayed · needs attention");
-  assert.match(rewardsServiceMessage(report, false), /operator’s attention/);
+  assert.match(rewardsServiceMessage(report, false), /payout service catches up/);
 });

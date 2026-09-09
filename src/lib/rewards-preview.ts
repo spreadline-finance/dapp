@@ -9,7 +9,7 @@ export function distributionCountdown(report: RewardsReport, now: number, stale:
   if (report.statusReason === "rpc-unavailable") return "Waiting for network connection";
   if (report.status === "attention" || report.statusReason === "operator-attention") return "Delayed · needs attention";
   if (report.executionMode === "report-only") return "Payouts not running";
-  if (report.executionMode === "manual") return "Operator-triggered";
+  if (report.executionMode === "manual") return "Every 5 minutes";
   if (report.status === "paused") return "Paused";
   if (report.statusReason !== "none") return "Waiting for service readiness";
   if (!report.nextRunAt) return "Awaiting schedule";
@@ -28,16 +28,16 @@ export function rewardsServiceMessage(report: RewardsReport | null, stale: boole
     "gas-unavailable": "Distribution is waiting for transaction-fee funding or available gas budget.",
     "rpc-unavailable": "The payout service cannot read the network right now.",
     "payment-pending": "The service is waiting for a submitted transaction to confirm. Payments count as received only after confirmation.",
-    "operator-attention": "The payout service needs the operator’s attention before it can continue.",
+    "operator-attention": "Rewards are delayed while the payout service catches up.",
   };
   if (reasons[report.statusReason]) return reasons[report.statusReason];
-  if (report.status === "attention") return "The payout service needs the operator’s attention before it can continue.";
-  if (report.executionMode === "report-only") return "The report is connected, but the payout process is not running. The operator needs to enable it before distributions can continue.";
-  if (report.executionMode === "manual") return "The operator starts each distribution check. There is no automatic countdown in this mode. Eligible payments still arrive directly in your wallet; you do not need to claim.";
+  if (report.status === "attention") return "Rewards are delayed while the payout service catches up.";
+  if (report.executionMode === "report-only") return "Rewards reporting is connected, but periodic payouts are not running yet.";
+  if (report.executionMode === "manual") return "Rewards are sent periodically every 5 minutes when fees, funding and minimum payout conditions are met. Eligible payments arrive directly in your wallet; you do not need to claim.";
   if (report.status === "paused" || report.statusReason === "paused") return "Automatic distribution checks are paused. Recorded pending rewards remain unpaid until the service resumes.";
   if (BigInt(report.totals.collected) === BigInt(0)) return "No creator fees have been collected into the payout ledger yet. Fees still on Pons are not included in these totals.";
   if (BigInt(report.totals.unallocated) === BigInt(0) && BigInt(report.totals.reservedForHolders) === BigInt(0)) return "Previous holder allocations have been paid. The next check looks for newly available creator fees.";
-  return "The next check collects available fees and sends funded allocations that meet the minimum payout. Pending rewards below the minimum carry forward.";
+  return "Every 5 minutes, the payout service checks available fees and sends funded allocations that meet the minimum payout. Pending rewards below the minimum carry forward.";
 }
 
 /** Never substitute an old allocation snapshot for a current ownership observation. */
@@ -57,7 +57,7 @@ export function estimatedAdditionalReward(report: RewardsReport, stale: boolean,
   return (budget * BigInt(position.eligibleWeight) / BigInt(position.totalEligibleWeight)).toString();
 }
 
-/** Lifetime holder totals from validated keeper accounting, independent of the loaded epoch page. */
+/** Lifetime holder totals from validated payout accounting, independent of the loaded epoch page. */
 export function distributionTotals(report: RewardsReport) {
   const paid = BigInt(report.totals.paidToHolders);
   const allocatedPending = BigInt(report.totals.reservedForHolders);
