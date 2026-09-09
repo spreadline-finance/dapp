@@ -3,6 +3,7 @@
 import { useId, useState } from "react";
 import { ArrowDownRight, ArrowRight, ArrowUpRight, ChartNoAxesCombined, SlidersHorizontal } from "lucide-react";
 import { displayNumber as n, ageLabel } from "@/lib/live-api";
+import { sourceIsCurrent } from "@/lib/live-freshness";
 import { usePriceObservations } from "@/lib/price-observations";
 import { modelRoundTrip } from "@/lib/chart-data";
 import type { PriceBook, QuoteBook, StockAsset } from "@/lib/market-types";
@@ -12,8 +13,8 @@ import { StockLogo } from "./stock-logo";
 const W = 760, H = 225, L = 22, R = 684, T = 20, B = 178;
 const timeLabel = (time: number) => new Date(time).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit", timeZone: "UTC" });
 
-export function ReferenceChart({ symbol, assets, book, now, onSelect, registryCached = false, initialMode = "session" }: {
-  symbol: string; assets: StockAsset[]; book?: PriceBook; now: number; onSelect: (symbol: string) => void; registryCached?: boolean; initialMode?: "session" | "spread";
+export function ReferenceChart({ symbol, assets, book, now, onSelect, registryCached = false, sourceUnavailable = false, initialMode = "session", selectable = true }: {
+  symbol: string; assets: StockAsset[]; book?: PriceBook; now: number; onSelect: (symbol: string) => void; registryCached?: boolean; sourceUnavailable?: boolean; initialMode?: "session" | "spread"; selectable?: boolean;
 }) {
   const points = usePriceObservations(symbol);
   const [hovered, setHovered] = useState<number | null>(null);
@@ -24,7 +25,7 @@ export function ReferenceChart({ symbol, assets, book, now, onSelect, registryCa
   const last = points[points.length - 1];
   const quote = book?.quotes.find((q) => q.symbol === symbol);
   const delta = current && first ? (current.midpoint / first.midpoint - 1) * 100 : 0;
-  const stale = registryCached || !!book?.cachedSymbols?.includes(symbol) || !!book?.dataStatus || (!!last && now - last.time > 90000);
+  const stale = registryCached || sourceUnavailable || !!book?.cachedSymbols?.includes(symbol) || !!book?.dataStatus || (!!last && !sourceIsCurrent(new Date(last.time).toISOString(), now, 90000));
   const values = points.flatMap((p) => [p.bid, p.ask]);
   const min = values.length ? Math.min(...values) : 0;
   const max = values.length ? Math.max(...values) : 1;
@@ -38,9 +39,9 @@ export function ReferenceChart({ symbol, assets, book, now, onSelect, registryCa
     <div className="desk-panel-heading">
       <div className="chart-asset-title">
         <StockLogo symbol={symbol} size={36}/>
-        <div><select aria-label="Chart Stock Token" value={symbol} onChange={(e) => { setHovered(null); onSelect(e.target.value); }}>
+        <div>{selectable ? <select aria-label="Chart Stock Token" value={symbol} onChange={(e) => { setHovered(null); onSelect(e.target.value); }}>
           {assets.length ? assets.map((a) => <option key={a.address} value={a.symbol}>{a.symbol}</option>) : <option>{symbol}</option>}
-        </select><span>USD reference · per token</span></div>
+        </select> : <strong>{symbol} reference history</strong>}<span>USD reference · per token</span></div>
       </div>
       <div className="chart-tabs" aria-label="Chart display">
         <button aria-pressed={mode === "session"} onClick={() => { setHovered(null); setMode("session"); }}>Session</button>
@@ -52,7 +53,7 @@ export function ReferenceChart({ symbol, assets, book, now, onSelect, registryCa
         <span className={delta < 0 ? "chart-negative" : "chart-positive"}>{points.length > 1 ? <>{delta < 0 ? <ArrowDownRight size={14}/> : <ArrowUpRight size={14}/>} {n(delta, 3)}% since first observation</> : "Reference midpoint"}</span></div>
       <span className={`data-tag ${stale || quote?.halted ? "warning" : ""}`}><i/>{quote?.halted ? "Trading halted" : stale ? "Last observation" : current ? "Issuer reference" : "Connecting"}</span>
     </div>
-    {!points.length ? <div className="chart-waiting"><ChartNoAxesCombined size={32}/><h3>Your market, in perspective.</h3><p>The chart starts with the first issuer quote, then records new observations while this tab is open.</p><span>Explore the strategy model below while the source connects.</span></div> : mode === "spread" ? <div className="bid-ask-view">
+    {!points.length ? <div className="chart-waiting"><ChartNoAxesCombined size={32}/><h3>{sourceUnavailable ? "Issuer quotes are unavailable" : "Waiting for an issuer quote"}</h3><p>{sourceUnavailable ? "Observations resume when the price source responds." : "New observations appear here while this tab is open."}</p><span>Historical prices are not available from this source.</span></div> : mode === "spread" ? <div className="bid-ask-view">
       <div><span>REFERENCE BID</span><strong>${n(last.bid, 4)}</strong></div>
       <div className="spread-bridge"><i/><span>{n((last.ask / last.bid - 1) * 10000, 2)} bps</span><i/></div>
       <div><span>REFERENCE ASK</span><strong>${n(last.ask, 4)}</strong></div>

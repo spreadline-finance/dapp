@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 import { deploymentConfig } from "./config/deployment";
 const deployment = deploymentConfig(process.env);
 const nextConfig: NextConfig = {
+  devIndicators: false,
   ...(deployment.staticExport ? { output: "export" as const } : {}),
   ...(deployment.apiOrigin ? {
     async rewrites() {

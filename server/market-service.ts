@@ -74,7 +74,7 @@ export function createMarketService(rpcUrl: string, fetchJSON: JSONFetcher) {
     for (let offset = 0; offset < symbols.length; offset += 3) {
       const batch = symbols.slice(offset, offset + 3);
       const results = await Promise.allSettled(batch.map(async (symbol) => {
-        const source = await fetchJSON(`https://api.robinhood.com/rhj/prices/${encodeURIComponent(symbol)}`, 45);
+        const source = await fetchJSON(`https://api.robinhood.com/rhj/prices/${encodeURIComponent(symbol)}`, 15);
         const parsed = parsePrices(source.value);
         const quote = parsed.find((q) => q.symbol === symbol);
         if (!quote) throw new Error("No valid quote returned for this symbol.");
@@ -195,6 +195,12 @@ export function createMarketService(rpcUrl: string, fetchJSON: JSONFetcher) {
         } satisfies Pool;
       }),
     );
+    // A provider outage is not an empty market. Preserve the upstream status so
+    // the Worker can apply its cooldown and retain the last verified pool book.
+    if (results.every((result) => result.status === "rejected")) {
+      const failed = results.find((result) => result.status === "rejected");
+      if (failed?.status === "rejected") throw failed.reason;
+    }
     return {
       pools: results.flatMap((r) =>
         r.status === "fulfilled" && r.value ? [r.value] : [],

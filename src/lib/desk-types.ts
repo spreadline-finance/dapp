@@ -54,7 +54,7 @@ export interface DeskPoolBoard extends SnapshotStatus {
   fetchedAt: string;
   blockNumber: string;
   blockTimestamp: string;
-  reference: { bid: number; ask: number; generatedAt: string; halted: boolean } | null;
+  reference: { bid: number; ask: number; generatedAt: string; halted: boolean; cached?: boolean } | null;
   pools: {
     address: `0x${string}`;
     fee: number;

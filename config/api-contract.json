@@ -1,0 +1,5 @@
+{
+  "apiVersion": 2,
+  "chainId": 4663,
+  "capabilities": ["desk", "rewards", "wallet-trading"]
+}

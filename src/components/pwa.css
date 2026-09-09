@@ -24,9 +24,13 @@
   .desk .desk-header-actions { gap: 8px; min-width: 0; }.desk .desk-header-actions .button { min-height: 44px; font-size: .8125rem; padding: 10px 12px; border-radius: 10px; white-space: nowrap; }
   .desk[data-view] .desk-work .desk-main { padding: 22px max(16px, env(safe-area-inset-right)) calc(90px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); min-width: 0; }
   .desk .desk-page-heading { margin-bottom: 22px; gap: 12px; }.desk .desk-page-heading > div { min-width: 0; }.desk .desk-page-heading .eyebrow { display: none; }.desk .desk-page-heading h1 { font-size: clamp(30px, 8vw, 38px); line-height: 1.13; margin: 0 0 10px; overflow-wrap: anywhere; }.desk .desk-page-heading p { font-size: .9375rem; line-height: 1.6; }
-  .app-bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; z-index: 40; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); padding: 7px max(8px, env(safe-area-inset-right)) max(7px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)); background: #f8faf3; border-top: 1px solid #dbe2d1; }
+  .app-bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; z-index: 40; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); padding: 7px max(8px, env(safe-area-inset-right)) max(7px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)); background: #f8faf3; border-top: 1px solid #dbe2d1; }
   .app-bottom-nav button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; padding: 7px 2px; min-height: 54px; border: 0; border-radius: 10px; background: transparent; color: #5b6d50; font-size: .75rem; font-weight: 500; touch-action: manipulation; transition: background 160ms, color 160ms; }
   .app-bottom-nav button[aria-current="page"] { background: #e5eed9; color: #345324; }.app-bottom-nav button:active { background: #dce7ce; }
+  .app-bottom-nav .app-bottom-earn { position: relative; justify-self: center; width: 100%; max-width: 72px; min-height: 62px; margin-top: -8px; border: 1px solid #637d45; border-radius: 14px; background: #3c502e; color: #f3f8e9; font-weight: 650; box-shadow: 0 3px 10px #2338191a, inset 0 1px 0 #ffffff18; }
+  .app-bottom-nav .app-bottom-earn:hover, .app-bottom-nav .app-bottom-earn:active { background: #304424; }
+  .app-bottom-nav .app-bottom-earn[aria-current] { background: #263b1d; color: #f3f8e9; border-color: #7f9b52; }
+  .app-bottom-nav .app-bottom-earn[aria-current]::after { content: ""; position: absolute; bottom: 4px; width: 14px; height: 2px; border-radius: 2px; background: #d4e9ad; }
   html[data-keyboard-open="true"] .app-bottom-nav { display: none; }
   .desk :is(input:not([type="checkbox"]):not([type="range"]), select, textarea), .lending-dialog :is(input:not([type="checkbox"]):not([type="range"]), select) { font-size: 16px; }
   .desk :is(button, summary), .lending-dialog :is(button, summary) { touch-action: manipulation; }

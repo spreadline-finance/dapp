@@ -16,10 +16,12 @@
   height: 100dvh;
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
 }
 .desk-sidebar .wordmark {
   font-size: 37px;
-  margin-bottom: 55px;
+  margin-bottom: 35px;
 }
 .desk-workspace-label {
   font-size: 12px;
@@ -2555,3 +2557,53 @@
 .price-chart-wrap svg, .model-plot svg { min-width: 660px; }
 .reference-chart svg text, .strategy-lab svg text { font-size: 14px; }
 @media (max-width: 1000px) { .lab-layout { grid-template-columns: 1fr; }.lab-controls { border-left: 0; border-top: 1px solid var(--desk-line); display: grid; grid-template-columns: 1fr 1fr; gap: 0 25px; }.lab-controls > label { grid-column: 1/-1; }.lab-controls > input, .lab-controls > select { grid-column: 1/-1; }.model-result p { max-width: 250px; } }
+
+/* Keep primary tasks visible; secondary tools expand only when needed. */
+.workspace-nav-group { border-top: 1px solid var(--desk-line, #deded5); margin-top: 14px; padding-top: 8px; }
+.workspace-nav-group > summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; padding: 10px 12px; list-style: none; color: #59664e; font-size: 13px; cursor: pointer; }
+.workspace-nav-group > summary::-webkit-details-marker { display: none; }
+.workspace-nav-group[open] > summary > svg { transform: rotate(180deg); }
+.workspace-nav-group > div { display: grid; gap: 4px; }
+.workspace-earn-nav { display: grid; gap: 4px; padding: 12px 8px 8px; margin-block: 10px; border: 1px solid #536b3c; border-radius: 14px; background: #3c502e; }
+.workspace-earn-label { padding: 0 10px 4px; color: #d4e5b5; font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; }
+:is(.desk-sidebar, .app-menu-sheet) nav .workspace-earn-nav button { color: #f0f5e8; border-radius: 8px; gap: 10px; padding: 11px 10px; min-height: 44px; }
+:is(.desk-sidebar, .app-menu-sheet) nav .workspace-earn-nav button:first-of-type { font-weight: 600; }
+:is(.desk-sidebar, .app-menu-sheet) nav .workspace-earn-nav button:hover { background: #4c623a; color: #fff; }
+:is(.desk-sidebar, .app-menu-sheet) nav .workspace-earn-nav button.selected { background: #deedc4; color: #2c421f; }
+:is(.desk-sidebar, .app-menu-sheet) nav .workspace-earn-nav button:focus-visible { outline-color: #e6f2d1; outline-offset: 2px; }
+.desk-sidebar nav button { min-height: 46px; width: 100%; }
+.desk-sidebar nav button > svg { flex-shrink: 0; }
+.desk-sidebar-bottom { margin-top: auto; flex-shrink: 0; padding-top: 18px; }
+.desk-sidebar nav { padding-bottom: 28px; }
+.workspace-plan-button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; flex-shrink: 0; min-height: 44px; padding: 10px 14px; border: 1px solid #cbd5bf; border-radius: 8px; background: #f1f4e9; color: #3e562f; font-size: 13px; }
+.desk .desk-page-heading { margin-bottom: 20px; }
+.desk .desk-page-heading h1 { margin-top: 0; }
+.desk .desk-error { margin-bottom: 18px; }
+.chart-asset-title strong { font-size: 14px; font-weight: 500; }
+.desk :is(button, a, input, select, summary):focus-visible, .app-menu-sheet :is(button, a, summary):focus-visible { outline: 2px solid #536937; outline-offset: 3px; }
+.desk :is(section, h1, h2, h3, input, select, button) { scroll-margin-top: 90px; scroll-margin-bottom: 96px; }
+@media (max-width: 760px) {
+  .desk[data-view="terminal"] .desk-page-heading { flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
+  .desk[data-view="terminal"] .desk-page-heading h1 { font-size: 30px; margin-bottom: 6px; }
+  .desk[data-view="terminal"] .workspace-plan-button { min-height: 44px; padding: 8px 12px; }
+  .workspace-nav-group { margin-top: 10px; }
+  .workspace-nav-group > summary { min-height: 50px; font-size: 15px; }
+  .app-menu-sheet .workspace-nav-group > div { padding-left: 8px; }
+  .desk .chart-tabs button { min-height: 44px; }
+  .desk .reference-chart .desk-panel-heading { flex-wrap: wrap; }
+  .desk .portfolio-top form { min-width: 0; width: 100%; }
+  .desk .portfolio-top input { min-width: 0; width: 100%; }
+  .desk .desk-error { flex-wrap: wrap; gap: 10px; }
+  .desk .desk-error p { flex: 1; min-width: 180px; }
+  .desk .desk-error button { min-height: 44px; margin-left: auto; }
+  .desk .wallet-table { min-width: 0; width: 100%; }
+  .desk .wallet-table thead { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); clip-path: inset(50%); white-space: nowrap; }
+  .desk .wallet-table tbody { display: grid; }
+  .desk .wallet-table tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; padding: 16px; border-bottom: 1px solid var(--desk-line); }
+  .desk .wallet-table td { border: 0; padding: 0; min-width: 0; }
+  .desk .wallet-table td:nth-child(2) { text-align: right; align-self: center; overflow-wrap: anywhere; }
+  .desk .wallet-table td:nth-child(3) { align-self: center; }
+  .desk .wallet-table td:nth-child(4) { text-align: right; }
+  .desk .wallet-table td:first-child > span { display: block; }
+  .desk .wallet-table .planner-portfolio-action { font-size: 12px; }
+}

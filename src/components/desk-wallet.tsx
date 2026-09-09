@@ -63,7 +63,7 @@ export function DeskWallet({ snapshot, wallet, onRefresh }: { snapshot: DeskSnap
     mutationFn: async () => {
       if (!provider || !account) throw new Error("Connect your wallet first.");
       setPlan(null);
-      const fresh = await getData<DeskSnapshot>(`/api/desk?address=${account}`);
+      const fresh = await getData<DeskSnapshot>(`desk?address=${account}`);
       return prepareDeskAction(provider, fresh, account, action, input);
     },
     onSuccess: setPlan,

@@ -35,7 +35,7 @@ export function makeDeskPoolBoard(catalog: Catalog, book: PoolBook, prices: Pric
   const bid = raw ? Number(raw.bid) * multiplier : NaN;
   const ask = raw ? Number(raw.ask) * multiplier : NaN;
   const reference = raw && Number.isFinite(bid) && bid > 0 && Number.isFinite(ask) && ask >= bid
-    ? { bid, ask, generatedAt: raw.generatedAt, halted: raw.halted } : null;
+    ? { bid, ask, generatedAt: raw.generatedAt, halted: raw.halted, cached: Boolean(prices?.cachedSymbols?.includes(book.symbol) || prices?.dataStatus) } : null;
   const referenceAge = reference ? now - Date.parse(reference.generatedAt) : Infinity;
   const comparable = reference && !reference.halted && referenceAge >= -10000 && referenceAge <= 120000 && !prices?.cachedSymbols?.includes(book.symbol) && !prices?.dataStatus && !catalog.dataStatus && !book.dataStatus;
   const midpoint = reference ? (reference.bid + reference.ask) / 2 : 0;

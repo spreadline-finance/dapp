@@ -10,15 +10,26 @@ import { PUBLIC_RPC, TRACKED_SYMBOLS } from "../src/lib/market-types";
 import { parseSwapAmount, TradePreparationError, type TradeSide } from "../src/lib/trading";
 import { parsePlannerAmount } from "../src/lib/position-planner";
 import { createRewardsService } from "./rewards-service";
+import apiContract from "../config/api-contract.json";
 const MAX_BYTES = 2_000_000;
+const rpcEndpoint = (env: Env) => env.ROBINHOOD_RPC_SECRET || env.ROBINHOOD_RPC_URL || PUBLIC_RPC;
+export function providerRetryAfter(value: string | null, now = Date.now(), fallback = 60): number {
+  if (!value?.trim()) return fallback;
+  const numeric = /^\d+(?:\.\d+)?$/.test(value.trim()) ? Number(value) : NaN;
+  const seconds = Number.isFinite(numeric) ? numeric : (Date.parse(value) - now) / 1000;
+  return Number.isFinite(seconds) ? Math.min(300, Math.max(1, Math.ceil(seconds))) : fallback;
+}
 class UpstreamError extends Error {
-  constructor(readonly status: number, readonly retryAfter = 60) {
+  constructor(readonly status: number, readonly retryAfter = status === 429 ? 60 : 15) {
     super("upstream_unavailable");
     this.name = "UpstreamError";
   }
 }
 export async function readBoundedJSON(response: Response): Promise<unknown> {
-  if (!response.ok) throw new UpstreamError(response.status, Math.max(30, Math.min(300, Number(response.headers.get("retry-after")) || 60)));
+  if (!response.ok) {
+    await response.body?.cancel().catch(() => undefined);
+    throw new UpstreamError(response.status, providerRetryAfter(response.headers.get("retry-after"), Date.now(), response.status === 429 ? 60 : 15));
+  }
   if (Number(response.headers.get("content-length") || 0) > MAX_BYTES)
     throw new Error("response_too_large");
   const reader = response.body?.getReader();
@@ -58,6 +69,16 @@ function json(value: unknown, status = 200, ttl = 0) {
     },
   });
 }
+function clientResponse(response: Response) {
+  // Cache API entries keep their own TTL. A second CDN cache can otherwise
+  // replay expired quotes or a compressed response to an incompatible client.
+  const delivered = new Response(response.body, response);
+  delivered.headers.set("cache-control", "no-store");
+  delivered.headers.set("cdn-cache-control", "no-store");
+  delivered.headers.set("vercel-cdn-cache-control", "no-store");
+  delivered.headers.set("vary", "Accept-Encoding");
+  return delivered;
+}
 function errorCauses(error: unknown) {
   const causes: {
     name: string;
@@ -78,7 +99,7 @@ function errorCauses(error: unknown) {
       code: typeof item.code === "number" ? item.code : undefined,
       status: typeof item.status === "number" ? item.status : undefined,
       retryAfter: item.headers instanceof Headers && item.headers.has("retry-after")
-        ? Math.min(300, Math.max(1, Number(item.headers.get("retry-after")) || 60)) : undefined,
+        ? providerRetryAfter(item.headers.get("retry-after"), Date.now(), item.status === 429 ? 60 : 15) : undefined,
       summary:
         typeof item.shortMessage === "string"
           ? item.shortMessage
@@ -250,6 +271,7 @@ export default {
     }
     if (url.pathname === "/api/health")
       return json({
+        ...apiContract,
         status: "ok",
         mode: "market-data-and-wallet-trading",
         walletTradingEnabled: true,
@@ -258,7 +280,7 @@ export default {
         chainId: 4663,
         executionEnabled: false,
         rpcTier:
-          (env.ROBINHOOD_RPC_URL || PUBLIC_RPC) === PUBLIC_RPC
+          rpcEndpoint(env) === PUBLIC_RPC
             ? "public"
             : "dedicated",
       });
@@ -292,9 +314,9 @@ export default {
       if (!privateRead) {
         const hit = await cache.match(cacheKey);
         if (hit) {
-          if (url.pathname !== "/api/quote" && url.pathname !== "/api/swap-quote") return hit;
+          if (url.pathname !== "/api/quote" && url.pathname !== "/api/swap-quote") return clientResponse(hit);
           const quoted = await hit.clone().json<{ expiresAt: string }>();
-          if (quoteIsFresh(quoted.expiresAt)) return hit;
+          if (quoteIsFresh(quoted.expiresAt)) return clientResponse(hit);
         }
       }
       const cooldown = isLendingPrivate || isPlanner || url.pathname === "/api/planner-position" ? undefined : await cache.match(failureKey);
@@ -302,7 +324,17 @@ export default {
         const saved = await cooldown.json<{ status: number; retryAt: number; message: string }>();
         if (saved.retryAt > Date.now()) return unavailable(saved.status, Math.ceil((saved.retryAt - Date.now()) / 1000), saved.message);
       }
-      async function fetchJSON(upstream: string, ttl: number) {
+      // Share registry/price reads within this request only. Concurrent desk
+      // sections can need the same source before the Cache API write completes.
+      const sources = new Map<string, Promise<{ value: unknown; fetchedAt: string; cached?: boolean }>>();
+      function fetchJSON(upstream: string, ttl: number) {
+        const existing = sources.get(upstream);
+        if (existing) return existing;
+        const read = readSource(upstream, ttl);
+        sources.set(upstream, read);
+        return read;
+      }
+      async function readSource(upstream: string, ttl: number) {
         const key = new Request(
           new URL(
             "/__source-cache/" + encodeURIComponent(upstream),
@@ -347,15 +379,17 @@ export default {
           return payload;
         } catch (error) {
           const status = error instanceof UpstreamError ? error.status : 503;
-          const seconds = error instanceof UpstreamError ? error.retryAfter : 60;
+          const seconds = error instanceof UpstreamError ? error.retryAfter : 15;
           await activeCache.put(sourceFailureKey, json({ status, retryAt: Date.now() + seconds * 1000 }, 200, seconds));
           const previous = await lastPrice();
+          console.warn(JSON.stringify({ event: "issuer_source_unavailable", sourcePath: new URL(upstream).pathname,
+            status, retryAfter: seconds, errorType: error instanceof Error ? error.name : "Unknown", retainedObservation: Boolean(previous) }));
           if (previous) return previous;
           throw error;
         }
       }
       const service = createMarketService(
-        env.ROBINHOOD_RPC_URL || PUBLIC_RPC,
+        rpcEndpoint(env),
         fetchJSON,
       );
       const lending = createLendingService(readBoundedJSON);
@@ -395,11 +429,11 @@ export default {
       let ttl = 0;
       switch (url.pathname) {
         case "/api/desk":
-          data = await createDeskService(env.ROBINHOOD_RPC_URL || PUBLIC_RPC, env, service).snapshot(address);
+          data = await createDeskService(rpcEndpoint(env), env, service).snapshot(address);
           ttl = isDeskPrivate ? 0 : 15;
           break;
         case "/api/desk/pools":
-          data = await createDeskService(env.ROBINHOOD_RPC_URL || PUBLIC_RPC, env, service).pools(symbol);
+          data = await createDeskService(rpcEndpoint(env), env, service).pools(symbol);
           ttl = 30;
           break;
         case "/api/desk/history":
@@ -416,10 +450,10 @@ export default {
           data = await discoverLendingPositions(address!, readBoundedJSON);
           break;
         case "/api/lending/position":
-          data = await createLendingExecutionService(env.ROBINHOOD_RPC_URL || PUBLIC_RPC, lending).position(lendingKind, lendingId, address!, minBlock);
+          data = await createLendingExecutionService(rpcEndpoint(env), lending).position(lendingKind, lendingId, address!, minBlock);
           break;
         case "/api/lending/plan":
-          data = await createLendingExecutionService(env.ROBINHOOD_RPC_URL || PUBLIC_RPC, lending).plan(lendingIntent!, address!, minBlock);
+          data = await createLendingExecutionService(rpcEndpoint(env), lending).plan(lendingIntent!, address!, minBlock);
           break;
         case "/api/lending/markets":
           data = await lending.markets();
@@ -439,7 +473,7 @@ export default {
           break;
         case "/api/prices":
           data = await service.prices(symbols);
-          ttl = 45;
+          ttl = symbols.length === 1 ? 15 : 45;
           break;
         case "/api/network":
           data = await service.network();
@@ -473,7 +507,7 @@ export default {
       const response = json(data, 200, ttl);
       if (ttl) await cache.put(cacheKey, response.clone());
       if (retention[url.pathname]) ctx.waitUntil(cache.put(snapshotKey, json(data, 200, retention[url.pathname])));
-      return response;
+      return clientResponse(response);
     } catch (error) {
       const causes = errorCauses(error);
       if (error instanceof TradePreparationError || error instanceof LendingPreparationError) return json({ error: error.message }, 422);
@@ -492,7 +526,8 @@ export default {
         }),
       );
       const status = causes.some((cause) => cause.status === 429 || cause.code === 429 || cause.code === -32005) ? 429 : 503;
-      const seconds = error instanceof UpstreamError ? error.retryAfter : Math.max(60, ...causes.map((cause) => cause.retryAfter ?? 0));
+      const deadlines = causes.flatMap((cause) => cause.retryAfter === undefined ? [] : [cause.retryAfter]);
+      const seconds = error instanceof UpstreamError ? error.retryAfter : deadlines.length ? Math.max(...deadlines) : status === 429 ? 60 : 15;
       const message = isPlanner ? status === 429
         ? "The quote provider is cooling down. Please wait before comparing again."
         : "The quote provider did not respond. Please wait, then refresh the comparison."
@@ -507,7 +542,7 @@ export default {
   },
   async scheduled(controller: ScheduledController, env: Env): Promise<void> {
     const sources = new Map<string, Promise<{ value: unknown; fetchedAt: string }>>();
-    const service = createMarketService(env.ROBINHOOD_RPC_URL || PUBLIC_RPC, async (upstream) => {
+    const service = createMarketService(rpcEndpoint(env), async (upstream) => {
       const previous = sources.get(upstream);
       if (previous) return previous;
       const read = (async () => {
@@ -517,7 +552,7 @@ export default {
       sources.set(upstream, read);
       return read;
     });
-    const desk = createDeskService(env.ROBINHOOD_RPC_URL || PUBLIC_RPC, env, service);
+    const desk = createDeskService(rpcEndpoint(env), env, service);
     const symbol = deskScheduledSymbol(controller.scheduledTime);
     const [pools, snapshot] = await Promise.allSettled([desk.pools(symbol), desk.snapshot()]);
     if (pools.status === "rejected" || snapshot.status === "rejected")

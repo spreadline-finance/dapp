@@ -1,5 +1,6 @@
 # Use a dedicated provider URL for a production rollout.
-# Copy to .dev.vars locally; configure ROBINHOOD_RPC_URL as a secret on the host.
+# Copy to .dev.vars locally. In production, store the dedicated endpoint as
+# ROBINHOOD_RPC_SECRET; it takes precedence over the public development fallback.
 ROBINHOOD_RPC_URL=https://rpc.mainnet.chain.robinhood.com
 # Leave the vault unconfigured until its deployment and exact runtime are verified.
 DESK_VAULT_ADDRESS=

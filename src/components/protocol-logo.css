@@ -1,0 +1,3 @@
+.protocol-logo { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; vertical-align: middle; }
+.protocol-logo img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.protocol-logo > span { font-size: .8rem; font-weight: 600; color: #63764e; }

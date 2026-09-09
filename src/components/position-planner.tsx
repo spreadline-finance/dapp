@@ -104,7 +104,6 @@ export function PositionPlanner({ assets, symbol, onSelect, wallet, now, registr
   }
 
   return <div className="position-planner">
-    <div className="planner-intro"><span><Layers3 size={17}/> Three sizes. One market snapshot.</span><p>Compare the average price of entering or exiting a position before deciding how much to trade.</p></div>
     <div className="planner-layout">
       <form className="planner-builder" onSubmit={(event) => { event.preventDefault(); if (!validation) void request("quotes"); }}>
         <div className="planner-modes" aria-label="Choose trade direction">{(["sell", "buy"] as const).map((value) => <button key={value} type="button" aria-pressed={side === value} onClick={() => changeSide(value)}>{value === "sell" ? <ArrowUpRight size={17}/> : <ArrowDownRight size={17}/>} {value === "sell" ? "Plan an exit" : "Plan an entry"}</button>)}</div>

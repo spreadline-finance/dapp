@@ -62,3 +62,118 @@
 .market-terminal .trade-receive > span { flex-wrap: wrap; }
 
 .ticket-heading { flex-wrap: wrap; }.terminal-watchlist button > span { gap: 6px; }.market-terminal .terminal-watchlist .stock-logo { margin: 0; }.volume-bars .stock-identity { gap: 7px; }
+
+/* A single market selector, useful pool rows and a dedicated swap surface. */
+.terminal-toolbar { padding: 10px 14px; background: #fffef9; border: 1px solid var(--terminal-line); border-radius: 9px; margin-bottom: 18px; }
+.terminal-toolbar label { flex: 1; }
+.terminal-toolbar select { width: min(100%, 420px); min-height: 44px; font-size: 15px; }
+.terminal-columns { grid-template-columns: minmax(0, 1fr) 380px; gap: 22px; }
+.asset-pulse-heading { min-height: 0; padding-block: 23px; }
+.asset-pulse-heading h2 { overflow-wrap: anywhere; }
+.terminal-bottom { grid-template-columns: 1fr; }
+.corporate-board > summary { cursor: pointer; list-style: none; min-height: 66px; }
+.corporate-board > summary::-webkit-details-marker { display: none; }
+.corporate-board > summary > span:first-child { display: flex; gap: 9px; align-items: center; color: var(--terminal-ink); font-size: 15px; }
+.corporate-board > summary > span:last-child::after { content: "+"; display: inline-block; margin-left: 14px; font-size: 18px; }
+.corporate-board[open] > summary > span:last-child::after { content: "−"; }
+.event-filter { padding: 0 22px 15px; }
+.event-filter button, .liquidity-refresh button { min-height: 40px; padding: 8px 11px; background: #f0f4e7; border: 1px solid #d9e0cc; border-radius: 6px; font-size: 12px; color: #4e6639; }
+.liquidity-board .terminal-section-heading { align-items: center; }
+.pool-status { padding: 5px 8px; border-radius: 5px; background: #eaf1df; color: #4e653a !important; }
+.pool-status.is-delayed { background: #f2ead7; color: #7b653b !important; }
+.liquidity-list { padding: 0 22px; }
+.liquidity-row { display: grid; grid-template-columns: minmax(0, 1fr) auto 15px; align-items: center; gap: 14px; padding: 18px 0; border-top: 1px solid #e2e7d9; }
+.liquidity-row:hover { background: #f6f8ef; }
+.liquidity-row > svg { color: #6d8157; }
+.liquidity-pair { display: flex; align-items: center; gap: 11px; min-width: 0; }
+.liquidity-pair > div { min-width: 0; }
+.liquidity-row strong { display: block; font-size: 14px; font-weight: 500; color: #35442b; }
+.liquidity-row span:not(.stock-logo) { display: block; font-size: 12px; color: #6c785e; margin-top: 5px; }
+.liquidity-price { text-align: right; }
+.liquidity-price strong { font-variant-numeric: tabular-nums; }
+.liquidity-empty { display: flex; align-items: flex-start; gap: 16px; padding: 12px 23px 22px; }
+.liquidity-empty strong { font-size: 15px; font-weight: 500; line-height: 1.5; color: #3f5032; }
+.liquidity-empty p { margin: 7px 0 0; font-size: 13px; line-height: 1.65; color: #6a765d; }
+.liquidity-refresh { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 22px 17px; }
+.liquidity-refresh > span { font-size: 12px; color: #6a765d; }
+.liquidity-refresh button { display: inline-flex; align-items: center; gap: 7px; }
+.liquidity-refresh button:disabled { opacity: .55; cursor: not-allowed; }
+.trade-ticket { display: block; border-radius: 12px; padding: 22px; box-shadow: 0 5px 24px #344d1d09; }
+.ticket-heading { margin-bottom: 20px; }
+.ticket-heading .eyebrow { font-size: 10px; color: #758564; letter-spacing: .1em; }
+.ticket-heading h2 { margin: 7px 0 0; color: #2f4124; font-size: 23px; font-weight: 500; letter-spacing: -.5px; }
+.ticket-network { color: #657551; font-size: 11px; }
+.trade-side { margin-bottom: 16px; border-radius: 7px; }
+.trade-side button { min-height: 44px; border-radius: 5px; }
+.trade-amount-card { min-width: 0; border: 1px solid #e0e6d6; border-radius: 9px; padding: 15px; background: #f5f7ef; }
+.trade-amount-card > label, .trade-amount-card > span { display: block; color: #657455; font-size: 13px; }
+.trade-amount-row { display: flex; align-items: center; gap: 10px; min-width: 0; margin-top: 7px; }
+.trade-pay .trade-amount-row input { width: 100%; min-width: 0; padding: 5px 0; font-size: 32px; letter-spacing: -1px; }
+.trade-amount-row .ticket-token { display: inline-flex; align-items: center; gap: 7px; flex-shrink: 0; padding: 5px 7px 5px 5px; background: #fffef9; border: 1px solid #e0e5d5; border-radius: 20px; }
+.ticket-token b { font-size: 13px; font-weight: 500; color: #40572c; }
+.trade-pay .ticket-presets { margin-top: 10px; gap: 7px; }
+.ticket-presets button { flex: 1; min-height: 34px; border-radius: 5px; padding-inline: 6px; }
+.trade-direction { display: grid; margin: -1px 0; height: 22px; }
+.trade-direction::before { display: none; }
+.trade-direction svg { background: #fffef9; border: 1px solid #dce4cf; width: 31px; height: 31px; padding: 6px; border-radius: 50%; z-index: 1; }
+.trade-receive { background: #edf3e2; border-color: #dce6cd; }
+.trade-receive .trade-amount-row > strong { flex: 1; min-width: 0; font-size: 30px; font-weight: 400; line-height: 1.2; letter-spacing: -.7px; color: #425c2d; overflow-wrap: anywhere; }
+.trade-receive small { color: #657853; }
+.trade-receive.quote-expired { background: #f5f1e6; border-color: #e7dbbd; }
+.trade-receive.quote-expired > span, .trade-receive.quote-expired small { color: #80683d; }
+.ticket-slippage { margin: 13px 0; color: #657551; }
+.ticket-slippage select { min-height: 40px; border-radius: 5px; }
+.market-terminal .trade-ticket .ticket-primary { min-height: 48px; border-radius: 7px; font-size: 14px; }
+.market-terminal .ticket-route { grid-template-columns: auto minmax(0, 1fr); gap: 12px 8px; }
+.ticket-route-identity { display: flex; justify-content: flex-end; align-items: center; gap: 6px; flex-wrap: wrap; }
+.ticket-external { min-height: 44px; border-radius: 6px; }
+.ticket-execution { margin-top: 18px; padding-top: 17px; }
+.ticket-execution .button { min-height: 44px; border-radius: 6px; white-space: normal; }
+.trade-ticket :is(button, a, input, select):focus-visible, .terminal-toolbar select:focus-visible, .corporate-board summary:focus-visible, .liquidity-row:focus-visible, .liquidity-refresh button:focus-visible { outline: 2px solid #5c793c; outline-offset: 3px; }
+@media (max-width: 1180px) {
+  .terminal-columns { grid-template-columns: minmax(0, 1fr) 330px; gap: 17px; }
+  .trade-ticket { padding: 18px; }
+  .trade-amount-card { padding: 13px; }
+  .liquidity-row { column-gap: 9px; }
+}
+@media (max-width: 980px) {
+  .terminal-columns { display: flex; flex-direction: column; }
+  .terminal-trading { position: static; order: -1; }
+  .trade-ticket { display: block; }
+  .trade-amount-row { justify-content: space-between; }
+  .ticket-heading { flex-wrap: nowrap; }
+  .trade-pay .trade-amount-row input { max-width: none; }
+}
+@media (max-width: 760px) {
+  .desk[data-view="terminal"] .desk-main { padding-inline: 16px; }
+  .terminal-toolbar { padding: 6px 10px; margin-bottom: 14px; }
+  .terminal-toolbar select { width: 100%; font-size: 16px; }
+  .trade-ticket { padding: 16px; }
+  .trade-amount-card { padding: 12px; }
+  .desk .market-terminal .trade-ticket .trade-pay input, .trade-receive .trade-amount-row > strong { font-size: 30px; }
+  .ticket-heading { margin-bottom: 14px; }
+  .trade-side { margin-bottom: 12px; }
+  .trade-amount-row { margin-top: 4px; }
+  .trade-pay .ticket-presets { margin-top: 7px; }
+  .ticket-heading h2 { font-size: 23px; }
+  .market-terminal .ticket-presets button { min-height: 40px; }
+  .liquidity-list { padding-inline: 17px; }
+  .liquidity-empty { padding-inline: 18px; }
+  .liquidity-refresh { padding-inline: 17px; }
+  .liquidity-refresh button, .event-filter button { min-height: 44px; }
+  .liquidity-board .terminal-section-heading { flex-wrap: wrap; }
+  .corporate-board > summary > span:last-child { font-size: 0; }
+  .corporate-board > summary > span:last-child::after { font-size: 20px; }
+}
+@media (max-width: 370px) {
+  .trade-ticket { padding: 14px; }
+  .ticket-heading { flex-wrap: wrap; gap: 12px; }
+  .trade-amount-card { padding: 11px; }
+  .trade-pay .trade-amount-row input, .trade-receive .trade-amount-row > strong { font-size: 27px; }
+  .liquidity-pair { gap: 7px; }
+  .liquidity-pair .stock-logo { display: none; }
+}
+
+.market-terminal .trade-ticket .ticket-open-trade { display: flex; width: 100%; justify-content: center; align-items: center; gap: 10px; margin-top: 16px; }
+
+.market-terminal .trade-ticket .button-secondary.ticket-primary { background: #f3f6ec; border-color: #d9e2cb; color: #4e6639; }

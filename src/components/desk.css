@@ -35,3 +35,30 @@
 @media(prefers-reduced-motion:reduce){.earn-workspace *{transition:none!important;animation:none!important}}
 
 @media(max-width:650px){.earn-launch-state{display:grid;grid-template-columns:29px minmax(0,1fr)}.earn-launch-state>.earn-text-button{grid-column:2;margin-left:0;justify-self:start}.earn-pool-table{display:block;min-width:0}.earn-pool-table thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}.earn-pool-table tbody{display:block}.earn-pool-table tr{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:16px 18px;padding:19px 18px;border-top:1px solid var(--earn-line)}.earn-pool-table td{display:block;padding:0;border:0}.earn-pool-table td:first-child{padding:0;grid-column:1/-1}.earn-pool-table td[data-label]:before{content:attr(data-label);display:block;font-size:9px;font-weight:400;color:var(--earn-muted);margin-bottom:7px;white-space:normal}.earn-pool-table td:nth-child(4){grid-column:1/-1}.earn-pool-table td:last-child{position:absolute;right:16px;top:21px}.earn-liquidity-detail{max-width:260px;font-size:10px}.earn-liquidity-detail small{font-size:10px}.earn-pool-state{font-size:11px}.earn-pool-identity strong{font-size:12px}.earn-pool-identity>div>span{font-size:10px}.earn-fee-badge{font-size:11px;height:37px;min-width:47px}.earn-explorer-link{width:29px;height:29px}}
+
+.earn-vault-unavailable { display: flex; align-items: center; gap: 17px; padding: 21px 23px; border: 1px solid var(--earn-line); border-radius: 10px; background: var(--earn-surface); }
+.earn-vault-unavailable > svg { flex-shrink: 0; color: #758969; }
+.earn-vault-unavailable > div { flex: 1; min-width: 0; }
+.earn-vault-unavailable h2 { font-size: 16px; }
+.earn-vault-unavailable p { margin-top: 6px; font-size: 13px; }
+.earn-workspace .earn-protocol-name { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 12px; }
+.earn-market-toolbar .earn-asset-select { width: 100%; justify-content: flex-start; gap: 14px; }
+.earn-market-toolbar .earn-asset-select select { width: min(100%, 360px); max-width: none; min-width: 0; min-height: 44px; font-size: 14px; }
+.earn-market-toolbar .earn-asset-select > span { font-size: 12px; }
+.earn-pool-identity .protocol-logo { margin-right: 1px; }
+.earn-pool-identity strong { font-size: 13px; }
+.earn-pool-identity > div > span { font-size: 12px; }
+@media (max-width: 650px) {
+  .earn-vault-unavailable { padding: 18px; align-items: flex-start; flex-wrap: wrap; gap: 12px; }
+  .earn-vault-unavailable > div { flex-basis: calc(100% - 38px); }
+  .earn-vault-unavailable > button { margin-left: 36px; min-height: 44px; }
+  .earn-market-toolbar .earn-asset-select { display: block; }
+  .earn-market-toolbar .earn-asset-select > span { display: block; margin-bottom: 8px; }
+  .earn-market-toolbar .earn-asset-select select { width: 100%; font-size: 16px; }
+  .earn-pool-identity { padding-right: 34px; }
+  .earn-explorer-link { width: 44px; height: 44px; }
+  .earn-pool-table td:last-child { right: 12px; top: 15px; }
+  .earn-tabs { gap: 16px; overflow-x: auto; }
+  .earn-tabs > button { min-height: 44px; }
+  .earn-pair-summary > .earn-button { min-height: 44px; }
+}

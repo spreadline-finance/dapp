@@ -1,0 +1,13 @@
+[
+  {
+    "protocol": "Uniswap",
+    "file": "uniswap.svg",
+    "source": "https://github.com/Uniswap/brand-assets/raw/main/Uniswap%20Brand%20Assets.zip",
+    "archivePath": "Uniswap Brand Assets/Uniswap_icon_pink.svg",
+    "identitySource": "https://about.uniswap.org/",
+    "guidelines": "https://support.uniswap.org/hc/en-us/articles/30934762216973-Uniswap-Labs-Trademark-Guidelines",
+    "verifiedAt": "2026-09-09",
+    "sha256": "47b703cb5ea86969c1b14b75c094f18cffbfa57a1b6e219a8db571aab087022c",
+    "note": "Original, unmodified icon from the official brand archive linked by Uniswap Labs. Used alongside the protocol name to identify pool routing; no endorsement implied. Trademark rights are retained by Uniswap Labs."
+  }
+]

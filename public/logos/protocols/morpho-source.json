@@ -1,0 +1,10 @@
+{
+  "protocol": "Morpho",
+  "source": "https://brand.morpho.org/",
+  "download": "https://cdn.morpho.org/assets/brand-kit/morpho-logo.zip",
+  "archiveMember": "Morpho Logos/Morpho Logos/SVG/Morpho-logo-symbol-lightmode.svg",
+  "retrievedAt": "2026-09-09",
+  "sha256": "b0460cb541fe86e5c0d801943c222138e59afe1e2972313bd65dd10fb599acc1",
+  "modifications": "None. Original light-mode symbol from official brand kit.",
+  "attribution": "Copyright 2026 MORPHO - all rights reserved. Morpho marks identify the integrated lending protocol; no endorsement is implied."
+}

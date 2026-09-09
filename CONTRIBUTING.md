@@ -141,6 +141,20 @@ For account-specific deployments, copy `wrangler.jsonc` to
 pass `--config wrangler.production.local.jsonc` to Wrangler commands. This local
 configuration is ignored by Git, keeping the shared configuration portable.
 
+For a dedicated production RPC, store the endpoint as the Worker's
+`ROBINHOOD_RPC_SECRET` using the account-specific configuration:
+
+```sh
+npx wrangler secret put ROBINHOOD_RPC_SECRET --config wrangler.production.local.jsonc
+```
+
+Enter the endpoint at Wrangler's prompt; do not put provider credentials in shell
+arguments, committed files, or Vercel frontend variables. The Worker prefers this
+secret over `ROBINHOOD_RPC_URL`. The portable configuration keeps that public URL
+as the local-development fallback. Use the account-specific production configuration
+for migrations and Worker deployments so the existing database/account bindings
+are preserved.
+
 ### Vercel frontend
 
 Vercel hosts the Next.js frontend; the Cloudflare Worker must be deployed separately
@@ -155,11 +169,61 @@ directory (remove any `out` override). Configure these build-time variables:
 | `SPREADLINE_API_ORIGIN` | Your deployed Worker's HTTPS origin, without `/api` or credentials |
 
 Vercel builds require `SPREADLINE_API_ORIGIN` and proxy `/api/*` to that Worker.
-Keep `ROBINHOOD_RPC_URL` and the D1 binding on the Worker. Local development still
+Before Next.js builds, `npm run build` checks the configured Worker's `/api/health`
+with a ten-second deadline. It requires the version and capabilities in
+`config/api-contract.json`: API version 2, chain 4663, and `desk`, `rewards`, and
+`wallet-trading`. An old, unreachable or incompatible Worker stops the frontend
+build with deployment instructions. Extra capabilities are allowed. Local and
+non-Vercel builds skip this network check.
+
+Apply the Worker migrations, deploy the Worker, then start the matching Vercel
+frontend build. To run the same read-only preflight independently, use
+`VERCEL=1 node scripts/check-api-contract.mjs` with `SPREADLINE_API_ORIGIN` already
+configured in the environment. The check neither deploys nor migrates anything,
+and health failures never print upstream bodies or provider credentials.
+
+Keep `ROBINHOOD_RPC_SECRET`, its public fallback and the D1 binding on the Worker. Local development still
 uses port 8787; non-Vercel production builds still export the frontend and Worker.
 After redeploying, `/api/health` should return JSON with `status: "ok"`, and
 `/api/lending/markets` should return JSON containing `markets`. An HTML 404 means
 the API routing or deployment is missing, rather than a market filter issue.
+
+### Release data verification
+
+Release the Worker and frontend from the same revision. A healthy `/api/health`
+does not verify the rest of the API: an older Worker can return `status: "ok"`
+while newer routes such as `/api/desk` and `/api/rewards` still return 404.
+Compare the account-specific Worker configuration with `wrangler.jsonc` and apply
+the D1 migrations for that revision before enabling features that need them.
+The unconfigured vault and rewards report are valid launch states; do not invent
+addresses, reports or earnings to make those features appear available.
+
+Check the public frontend origin after both deployments:
+
+| Endpoint | Expected result |
+| --- | --- |
+| `/api/health` | JSON with `apiVersion: 2`, chain 4663 and the required capabilities from `config/api-contract.json` |
+| `/api/catalog` | Nonempty `assets` array |
+| `/api/prices?symbols=NVDA` | A current NVDA issuer observation, or an explicit cached/unavailable state |
+| `/api/pools?symbol=NVDA` | `pools` with `failedReads: 0`; no provider cooldown |
+| `/api/swap-quote?symbol=NVDA&side=buy&amount=100&slippageBps=50` | A fresh quote response with explicit route availability |
+| `/api/lending/markets`, `/api/lending/vaults` | JSON containing `markets` / `vaults` |
+| `/api/desk`, `/api/rewards` | JSON explaining configuration/availability rather than an endpoint 404 |
+
+API responses use `Cache-Control: no-store` outside the Worker. Cloudflare's Cache
+API separately retains public observations at their bounded TTLs, so browser/CDN
+cache bypass does not disable provider reuse. Keep these policies separate:
+caching the compressed response again in a proxy can return an unsupported content
+encoding, and caching quotes downstream can bypass the Worker's expiry check.
+Inspect `Vary: Accept-Encoding` on public data responses and verify that a request
+with `Accept-Encoding: identity` does not receive an unsupported encoded body.
+
+If pool and swap routes return provider HTTP 429 while issuer and lending routes
+work, inspect the Worker's RPC configuration and provider quota. The public RPC
+may behave differently from a developer's machine because the production egress
+and workload differ. Configure a provisioned server-side RPC endpoint when needed;
+frontend retries cannot restore capacity. Retained snapshots keep their original
+timestamps and are never used to prepare transactions.
 
 ## Changes and pull requests
 

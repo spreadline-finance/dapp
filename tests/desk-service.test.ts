@@ -22,7 +22,10 @@ test("desk pool spreads compare token units and omit stale, halted and inactive 
   assert.equal(board.reference?.ask, 51);
   assert.ok(Math.abs(board.pools[0].spreadBps! - 200) < 0.000001);
   assert.equal(makeDeskPoolBoard(catalog, book, prices, now + 120001).pools[0].spreadBps, null);
-  assert.equal(makeDeskPoolBoard(catalog, book, { ...prices, cachedSymbols: ["NVDA"] }, now).pools[0].spreadBps, null);
+  const retainedReference = makeDeskPoolBoard(catalog, book, { ...prices, cachedSymbols: ["NVDA"] }, now);
+  assert.equal(retainedReference.pools[0].spreadBps, null);
+  assert.equal(retainedReference.reference?.cached, true);
+  assert.equal(retainedReference.reference?.generatedAt, prices.quotes[0].generatedAt);
   const dataStatus = { state: "cached", reason: "Upstream unavailable", retryAt: new Date(now + 60000).toISOString() } as const;
   assert.equal(makeDeskPoolBoard({ ...catalog, dataStatus }, book, prices, now).pools[0].spreadBps, null);
   assert.equal(makeDeskPoolBoard(catalog, { ...book, dataStatus }, prices, now).pools[0].spreadBps, null);

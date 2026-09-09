@@ -9,6 +9,7 @@ import {
   QueryClientProvider,
   useQuery,
   useMutation,
+  useQueryClient,
 } from "@tanstack/react-query";
 import {
   Activity,
@@ -18,6 +19,7 @@ import {
   Check,
   CheckCheck,
   ChevronLeft,
+  ChevronDown,
   ChevronRight,
   CircleHelp,
   Clock3,
@@ -46,6 +48,7 @@ import {
   ageLabel,
   pollingInterval,
 } from "@/lib/live-api";
+import { LIVE_QUERY_DEFAULTS, preservePriceObservations, sourceIsCurrent, workspaceReads } from "@/lib/live-freshness";
 import {
   CHAIN_ID,
   EXPLORER,
@@ -68,20 +71,22 @@ import { OpportunityCheck, QuoteDecision, ResearchJournal } from "./opportunity-
 import { saveObservation } from "@/lib/research-journal";
 import { MarketTerminal } from "./market-terminal";
 import { StockLogo } from "./stock-logo";
+import { ProtocolLogo } from "./protocol-logo";
 import { Lending } from "./lending";
 import { StrategyDesk } from "./desk";
 import { TokenRewards } from "./token-rewards";
+import { SpreadTokenIcon } from "./spread-token";
 import { ResearchHistoryChart } from "./arbitrage-monitor";
 import { requestResearchQuote } from "@/lib/research-quote-client";
 import { PositionPlanner } from "./position-planner";
 import "./dapp.css";
 type View = "terminal" | "planner" | "lending" | "desk" | "rewards" | "check" | "markets" | "routes" | "portfolio" | "activity" | "infrastructure" | "learn";
 const views = [
-  { id: "terminal", label: "Markets & trading", icon: ChartNoAxesCombined },
-  { id: "planner", label: "Position & exit planner", icon: Layers3 },
+  { id: "terminal", label: "Markets", icon: ChartNoAxesCombined },
+  { id: "planner", label: "Position planner", icon: Layers3 },
   { id: "lending", label: "Lending", icon: Landmark },
   { id: "desk", label: "Desk & earn", icon: Vault },
-  { id: "rewards", label: "Token rewards", icon: Wallet },
+  { id: "rewards", label: "Token rewards", icon: SpreadTokenIcon },
   { id: "check", label: "Arbitrage research", icon: Search },
   { id: "markets", label: "Asset directory", icon: ChartNoAxesCombined },
   { id: "routes", label: "Route analysis", icon: Layers3 },
@@ -90,10 +95,35 @@ const views = [
   { id: "learn", label: "How it works", icon: BookOpen },
   { id: "infrastructure", label: "Sources & status", icon: Server },
 ] as const;
+const primaryViews = ["terminal", "portfolio", "lending", "planner"] as const;
+const navigationGroups = [
+  { label: "Research tools", ids: ["check", "activity", "markets"] },
+  { label: "Resources", ids: ["learn", "infrastructure"] },
+] as const;
+function WorkspaceNavigation({ view, onNavigate, mobile = false }: { view: View; onNavigate: (view: View) => void; mobile?: boolean }) {
+  const itemButton = (id: View) => {
+    const item = views.find((entry) => entry.id === id)!;
+    const selected = view === id || (id === "check" && view === "routes");
+    return <button key={id} className={selected ? "selected" : ""} aria-current={selected ? "page" : undefined} onClick={() => onNavigate(id)}><item.icon size={19}/><span>{item.label}</span></button>;
+  };
+  return <nav aria-label={mobile ? "More workspace views" : "Workspace"}>
+    {!mobile && primaryViews.slice(0, 2).map(itemButton)}
+    <div className="workspace-earn-nav" role="group" aria-label="Earn">
+      <span className="workspace-earn-label">Earn</span>
+      {(mobile ? ["desk"] as const : ["rewards", "desk"] as const).map(itemButton)}
+    </div>
+    {(mobile ? ["planner"] as const : primaryViews.slice(2)).map(itemButton)}
+    {navigationGroups.map((group) => <details className="workspace-nav-group" key={group.label} open={group.ids.some((id) => id === view) || (group.label === "Research tools" && view === "routes")}>
+      <summary>{group.label}<ChevronDown size={15}/></summary>
+      <div>{group.ids.map(itemButton)}</div>
+    </details>)}
+  </nav>;
+}
 function MobileNavigation({ view, onNavigate }: { view: View; onNavigate: (view: View) => void }) {
   const [open, setOpen] = useState(false);
-  const primary = [{ id: "terminal", label: "Markets", icon: ChartNoAxesCombined }, { id: "lending", label: "Lending", icon: Landmark }, { id: "portfolio", label: "Portfolio", icon: Wallet }] as const;
-  const secondary = views.filter((item) => !primary.some((main) => main.id === item.id));
+  const navigated = useRef(false);
+  const primary = [{ id: "terminal", label: "Markets", icon: ChartNoAxesCombined }, { id: "lending", label: "Lending", icon: Landmark }, { id: "rewards", label: "Earn", icon: SpreadTokenIcon }, { id: "portfolio", label: "Portfolio", icon: Wallet }] as const;
+  const earnSelected = view === "rewards" || view === "desk";
   useEffect(() => {
     const desktop = window.matchMedia("(min-width: 761px)");
     const closeOnDesktop = () => { if (desktop.matches) setOpen(false); };
@@ -102,13 +132,13 @@ function MobileNavigation({ view, onNavigate }: { view: View; onNavigate: (view:
   }, []);
   return <Dialog.Root open={open} onOpenChange={setOpen}>
     <nav className="app-bottom-nav" aria-label="Mobile workspace">
-      {primary.map((item) => <button key={item.id} aria-current={view === item.id ? "page" : undefined} onClick={() => onNavigate(item.id)}><item.icon size={21}/><span>{item.label}</span></button>)}
-      <Dialog.Trigger aria-current={secondary.some((item) => item.id === view) ? "page" : undefined}><Ellipsis size={22}/><span>More</span></Dialog.Trigger>
+      {primary.map((item) => <button key={item.id} className={item.id === "rewards" ? "app-bottom-earn" : undefined} aria-label={item.id === "rewards" ? "Earn: Token rewards" : undefined} aria-current={view === item.id ? "page" : item.id === "rewards" && earnSelected ? "true" : undefined} onClick={() => onNavigate(item.id)}><item.icon size={item.id === "rewards" ? 24 : 21} aria-hidden="true"/><span>{item.label}</span></button>)}
+      <Dialog.Trigger aria-current={!earnSelected && !primary.some((item) => item.id === view) ? "page" : undefined}><Ellipsis size={22}/><span>More</span></Dialog.Trigger>
     </nav>
-    <Dialog.Portal><Dialog.Overlay className="app-menu-overlay"/><Dialog.Content className="app-menu-sheet">
+    <Dialog.Portal><Dialog.Overlay className="app-menu-overlay"/><Dialog.Content className="app-menu-sheet" onCloseAutoFocus={(event) => { if (navigated.current) { event.preventDefault(); document.getElementById("desk-main")?.focus({ preventScroll: true }); navigated.current = false; } }}>
       <div className="app-menu-heading"><Dialog.Title>More from Spreadline</Dialog.Title><Dialog.Close aria-label="Close navigation"><X size={20}/></Dialog.Close></div>
       <Dialog.Description className="sr-only">Research tools, data sources and app installation.</Dialog.Description>
-      <nav aria-label="More workspace views">{secondary.map((item) => <button key={item.id} aria-current={view === item.id ? "page" : undefined} onClick={() => { setOpen(false); onNavigate(item.id); }}><item.icon size={20}/><span>{item.label}</span><ChevronRight size={17}/></button>)}</nav>
+      <WorkspaceNavigation view={view} mobile onNavigate={(next) => { navigated.current = true; setOpen(false); onNavigate(next); }}/>
       <div className="app-menu-install"><PwaInstallButton/></div>
       <Link className="app-menu-about" href="/">About Spreadline<ArrowUpRight size={16}/></Link>
     </Dialog.Content></Dialog.Portal>
@@ -117,10 +147,11 @@ function MobileNavigation({ view, onNavigate }: { view: View; onNavigate: (view:
 function useClock() {
   const [now, setNow] = useState(0);
   useEffect(() => {
-    const tick = () => setNow(Date.now());
+    const tick = () => { if (document.visibilityState === "visible") setNow(Date.now()); };
     tick();
     const id = setInterval(tick, 1000);
-    return () => clearInterval(id);
+    document.addEventListener("visibilitychange", tick);
+    return () => { clearInterval(id); document.removeEventListener("visibilitychange", tick); };
   }, []);
   return now;
 }
@@ -211,11 +242,11 @@ function PoolPanel({
     queryKey: ["pools", symbol],
     queryFn: ({ signal }) =>
       getData<PoolBook>(`pools?symbol=${encodeURIComponent(symbol)}`, signal),
-    refetchInterval: (q) => pollingInterval(60000, q.state.error, q.state.fetchFailureCount, q.state.data?.dataStatus?.retryAt),
-    staleTime: 60000,
+    refetchInterval: (q) => pollingInterval(30000, q.state.error, q.state.fetchFailureCount, q.state.data?.dataStatus?.retryAt),
+    staleTime: 30000,
   });
   const data = query.data;
-  const stale = !!data && (!!data.dataStatus || now - Date.parse(data.blockTimestamp) > 90000);
+  const stale = !!data && (!!query.error || !!data.dataStatus || !sourceIsCurrent(data.blockTimestamp, now, 90000));
   return (
     <div className="desk-panel pool-panel">
       <div className="desk-panel-heading">
@@ -243,11 +274,9 @@ function PoolPanel({
           {data.pools.map((pool) => (
             <div key={pool.address}>
               <div>
-                <span className="pool-fee">
-                  {n(pool.fee / 10000, pool.fee === 100 ? 2 : 2)}%
-                </span>
+                <ProtocolLogo protocol="uniswap" size={30}/>
                 <span>
-                  <strong>Uniswap V3</strong>
+                  <strong>Uniswap V3 · {n(pool.fee / 10000, 2)}%</strong>
                   <a
                     href={`${EXPLORER}/address/${pool.address}`}
                     target="_blank"
@@ -610,8 +639,8 @@ function PortfolioView({ wallet, onPlan }: { wallet: WalletState; onPlan: (symbo
     <>
       <div className="portfolio-top">
         <div>
-          <h2>Wallet balances</h2>
-          <p>Read ETH, USDG and the tracked Stock Tokens on Robinhood Chain.</p>
+          <h2>View a public address</h2>
+          <p>Explore balances without connecting a wallet.</p>
         </div>
         <form
           onSubmit={(e) => {
@@ -667,15 +696,7 @@ function PortfolioView({ wallet, onPlan }: { wallet: WalletState; onPlan: (symbo
       )}
       <ErrorBox error={query.error} retry={() => void query.refetch()} />
       {!address ? (
-        <div className="desk-panel">
-          <Empty title="Your assets, from the chain.">
-            Connect your wallet or enter a public address to view actual
-            balances. No simulated portfolio is shown.
-          </Empty>
-          <div className="center-wallet">
-            <WalletButton wallet={wallet} />
-          </div>
-        </div>
+        <div className="desk-notice"><Wallet size={18}/><span>Connect your wallet above or enter a public address to see ETH, USDG and tracked Stock Token balances.</span></div>
       ) : query.isPending ? (
         <div className="desk-panel">
           <SkeletonRows />
@@ -716,13 +737,13 @@ function PortfolioView({ wallet, onPlan }: { wallet: WalletState; onPlan: (symbo
               </div>
             </div>
             <div className="route-table-scroll">
-              <table className="wallet-table">
+              <table className="wallet-table" role="table">
                 <thead>
                   <tr>
-                    <th>Asset</th>
-                    <th>Token balance</th>
-                    <th>Contract</th>
-                    <th>Exit planning</th>
+                    <th scope="col">Asset</th>
+                    <th scope="col">Token balance</th>
+                    <th scope="col">Contract</th>
+                    <th scope="col">Exit planning</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -919,8 +940,10 @@ function Infrastructure({ network, networkCurrent }: { network: NetworkState | u
   );
 }
 function Workspace() {
+  const queryClient = useQueryClient();
   const wallet = useWallet();
   const [view, setView] = useState<View>("terminal");
+  const [routeReady, setRouteReady] = useState(false);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
   const [symbol, setSymbol] = useState("NVDA");
@@ -933,6 +956,7 @@ function Workspace() {
       const v = new URLSearchParams(window.location.search).get("view");
       if (views.some((item) => item.id === v)) setView(v as View);
       else setView("terminal");
+      setRouteReady(true);
     };
     sync();
     window.addEventListener("popstate", sync);
@@ -947,17 +971,21 @@ function Workspace() {
       next === "terminal" ? "/app" : `/app?view=${next}`,
     );
     window.scrollTo({ top: 0, behavior: "instant" });
+    requestAnimationFrame(() => document.getElementById("desk-main")?.focus({ preventScroll: true }));
   }
+  const readPolicy = workspaceReads(view);
   const catalog = useQuery({
     queryKey: ["catalog"],
     queryFn: ({ signal }) => getData<Catalog>("catalog", signal),
     staleTime: 300000,
+    enabled: routeReady && readPolicy.registry,
     refetchInterval: (q) => pollingInterval(300000, q.state.error, q.state.fetchFailureCount, q.state.data?.dataStatus?.retryAt),
   });
   const network = useQuery({
     queryKey: ["network"],
     queryFn: ({ signal }) => getData<NetworkState>("network", signal),
     staleTime: 30000,
+    enabled: routeReady && readPolicy.network,
     refetchInterval: (q) => pollingInterval(30000, q.state.error, q.state.fetchFailureCount, q.state.data?.dataStatus?.retryAt),
   });
   const assets = catalog.data?.assets ?? [];
@@ -977,17 +1005,18 @@ function Workspace() {
   );
   const visible = filtered.slice(page * 12, page * 12 + 12);
   const pages = Math.max(1, Math.ceil(filtered.length / 12));
-  const priceSymbols = [...new Set([...(view === "terminal" ? TRACKED_SYMBOLS : visible.map((asset) => asset.symbol)), symbol])].sort().join(",");
+  const priceSymbols = [...new Set([...(view === "markets" ? visible.map((asset) => asset.symbol) : []), symbol])].sort().join(",");
   const prices = useQuery({
     queryKey: ["prices", priceSymbols],
     queryFn: async ({ signal }) => {
-      const book = await getData<PriceBook>(`prices?symbols=${encodeURIComponent(priceSymbols)}`, signal);
-      if (!catalog.data?.dataStatus) recordPrices(book, assets);
+      const latest = await getData<PriceBook>(`prices?symbols=${encodeURIComponent(priceSymbols)}`, signal);
+      const book = preservePriceObservations(queryClient.getQueryData<PriceBook>(["prices", priceSymbols]), latest);
+      if (!catalog.error && !catalog.data?.dataStatus && !latest.dataStatus) recordPrices({ ...latest, quotes: latest.quotes.filter((quote) => !latest.cachedSymbols?.includes(quote.symbol)) }, assets);
       return book;
     },
-    enabled: assets.length > 0 && (view === "terminal" || view === "markets" || view === "portfolio"),
-    staleTime: 60000,
-    refetchInterval: (q) => (view === "markets" || view === "terminal") ? pollingInterval(60000, q.state.error, q.state.fetchFailureCount, q.state.data?.dataStatus?.retryAt) : false,
+    enabled: routeReady && assets.length > 0 && readPolicy.prices,
+    staleTime: readPolicy.priceInterval,
+    refetchInterval: (q) => readPolicy.prices ? pollingInterval(readPolicy.priceInterval, q.state.error, q.state.fetchFailureCount, q.state.data?.dataStatus?.retryAt) : false,
   });
   const reads = [
     { name: "Registry", query: catalog },
@@ -998,12 +1027,17 @@ function Workspace() {
     const deadline = query.error instanceof DataError ? query.error.retryAt : query.data?.dataStatus ? Date.parse(query.data.dataStatus.retryAt) : 0;
     return Math.ceil((deadline - now) / 1000);
   }));
+  const refreshableReads = reads.filter(({ query }) => !query.isFetching && !(query.error instanceof DataError && query.error.retryAt > now) && !(query.data?.dataStatus && Date.parse(query.data.dataStatus.retryAt) > now));
+  const nextRefreshWait = Math.max(0, Math.min(...reads.map(({ query }) => {
+    const deadline = Math.max(query.error instanceof DataError ? query.error.retryAt : 0, query.data?.dataStatus ? Date.parse(query.data.dataStatus.retryAt) : 0);
+    return deadline > now ? Math.ceil((deadline - now) / 1000) : Infinity;
+  })));
   const priceMap = new Map(prices.data?.quotes.map((q) => [q.symbol, q]) ?? []);
   const chainStale =
     !network.data ||
     network.isError ||
     !!network.data?.dataStatus ||
-    now - Date.parse(network.data.blockTimestamp) > 90000;
+    !sourceIsCurrent(network.data.blockTimestamp, now, 90000);
   function analyze(next: string, observed?: QuoteBook) {
     setInspectedQuote(observed);
     setSymbol(next);
@@ -1015,11 +1049,11 @@ function Workspace() {
     navigate("planner");
   }
   const titles: Record<View, { title: string; description: string }> = {
-    terminal: { title: "Your market. Your next move.", description: "Robinhood Stock Tokens, issuer insights and wallet trading." },
-    planner: { title: "Position & exit planner", description: "See how trade size changes what you could receive." },
-    lending: { title: "Put your assets to work.", description: "Explore real rates. Deposit, earn and manage your Morpho positions on Robinhood Chain." },
-    desk: { title: "A shared edge.", description: "Follow the markets, see the strategy, and share in realized trading surplus." },
-    rewards: { title: "A share in every fee.", description: "75% of collected creator fees, shared with token holders every 15 minutes." },
+    terminal: { title: "Markets & trading", description: "Stock Tokens on Robinhood Chain." },
+    planner: { title: "Position planner", description: "Compare entry or exit quotes at 25%, 50% and 100% of your amount." },
+    lending: { title: "Lending", description: "Compare Morpho markets. Supply assets and manage withdrawals." },
+    desk: { title: "Desk & earn", description: "Review pool observations and strategy vault availability." },
+    rewards: { title: "Token rewards", description: "Track creator-fee allocations and confirmed holder payments." },
     check: {
       title: "An eye on every route.",
       description: "Follow live round-trip quotes. Compare pools. Watch the edge change.",
@@ -1035,8 +1069,8 @@ function Workspace() {
         "Compare actual quotes across different pools, at a single Robinhood Chain block.",
     },
     portfolio: {
-      title: "Your onchain balance sheet.",
-      description: "Read what a wallet holds. No deposits or token approvals.",
+      title: "Portfolio",
+      description: "Wallet balances on Robinhood Chain.",
     },
     activity: {
       title: "Every read has a reference.",
@@ -1061,24 +1095,7 @@ function Workspace() {
         <Link className="wordmark" href="/">
           spreadline
         </Link>
-        <span className="desk-workspace-label">MARKET WORKSPACE</span>
-        <nav aria-label="Workspace">
-          {views.map((item) => (
-            <button
-              key={item.id}
-              className={view === item.id ? "selected" : ""}
-              aria-current={view === item.id ? "page" : undefined}
-              onClick={() => navigate(item.id)}
-            >
-              <item.icon size={18} />
-              {item.label}
-            </button>
-          ))}
-        </nav>
-        <div className="desk-sidebar-art" aria-hidden="true">
-          <img src="/artwork/hero-engraving.webp" alt="" />
-          <span>FIND THE EDGE.<br />FOLLOW IT THROUGH.</span>
-        </div>
+        <WorkspaceNavigation view={view} onNavigate={navigate}/>
         <div className="desk-sidebar-bottom">
           <PwaInstallButton/>
           <ShieldCheck size={19} />
@@ -1100,46 +1117,42 @@ function Workspace() {
             {views.find((v) => v.id === view)?.label}
           </span>
           <div className="desk-header-actions">
-            <span className={`desk-status ${chainStale ? "unavailable" : ""}`}>
+            {readPolicy.network && <span className={`desk-status ${chainStale ? "unavailable" : ""}`}>
               <i />
               {network.isPending
                 ? "Connecting"
                 : chainStale
                   ? network.data ? "Last chain snapshot" : "Chain reconnecting"
-                  : "Mainnet connected"}
-            </span>
+                  : "Chain responding"}
+            </span>}
             <WalletButton wallet={wallet} />
           </div>
         </header>
-        <main className="desk-main" id="desk-main">
+        <main className="desk-main" id="desk-main" tabIndex={-1}>
           <ConnectionNotice/>
           <DemoWalletNotice wallet={wallet}/>
-          <div className="desk-page-heading">
+          {view !== "rewards" && <div className="desk-page-heading">
             <div>
-              <span className="eyebrow">SPREADLINE / STOCK TOKEN DESK</span>
               <h1 className="display">{titles[view].title}</h1>
               <p>{titles[view].description}</p>
             </div>
+            {view === "terminal" && <button className="workspace-plan-button" onClick={() => planPosition(symbol)}><Layers3 size={16}/>Plan a position<ArrowUpRight size={15}/></button>}
             {view === "markets" && <button
               className="refresh-data"
               aria-label="Refresh live data"
-              disabled={
-                network.isFetching || catalog.isFetching || prices.isFetching || refreshWait > 0
-              }
+              disabled={!refreshableReads.length}
               onClick={() => {
-                void network.refetch();
-                void catalog.refetch();
-                void prices.refetch();
+                for (const { query } of refreshableReads) void query.refetch();
               }}
             >
               <RefreshCw
                 size={16}
                 className={network.isFetching ? "spin" : ""}
               />
-              <span>{refreshWait > 0 ? `Resumes in ${refreshWait}s` : "Refresh"}</span>
+              <span>{reads.some(({ query }) => query.isFetching) ? "Refreshing…" : !refreshableReads.length && Number.isFinite(nextRefreshWait) ? `Retry in ${nextRefreshWait}s` : "Refresh"}</span>
             </button>}
-          </div>
-          {view === "terminal" && <><div className="planner-launch"><p>Planning a position? Compare entry or exit costs at three sizes.</p><button onClick={() => planPosition(symbol)}>Open position planner <ArrowRight size={16}/></button></div><MarketTerminal assets={sorted} book={prices.data} network={network.data} symbol={symbol} onSelect={setSymbol} now={now} wallet={wallet} registryCached={!!catalog.data?.dataStatus} priceError={prices.error?.message ?? null}/></>}
+          </div>}
+          {view === "terminal" && <><ErrorBox error={catalog.error} retry={() => void catalog.refetch()}/><MarketTerminal assets={sorted} book={prices.data} network={network.data} symbol={symbol} onSelect={setSymbol} now={now} wallet={wallet} registryCached={!!catalog.error || !!catalog.data?.dataStatus} priceError={prices.error?.message ?? null}/></>}
           {view === "planner" && <PositionPlanner key={`${plannerSeed?.id ?? "manual"}:${walletContext}`} assets={sorted} symbol={symbol} onSelect={setSymbol} wallet={wallet} now={now} registryReady={!!catalog.data && !catalog.data.dataStatus} registryError={catalog.error?.message ?? catalog.data?.dataStatus?.reason ?? null} initialAmount={plannerSeed?.symbol === symbol && plannerSeed.walletContext === walletContext ? plannerSeed.amount : undefined}/>}
           {view === "lending" && <Lending assets={assets} now={now} wallet={wallet}/>}
           {view === "desk" && <StrategyDesk assets={sorted} now={now} wallet={wallet} onAnalyze={analyze} registryError={catalog.error?.message ?? catalog.data?.dataStatus?.reason ?? null}/>}
@@ -1193,13 +1206,13 @@ function Workspace() {
               </div>
               <div className="source-health" role="status">
                 <span className="source-health-label">DATA PULSE</span>
-                {reads.map(({ name, query }) => <span key={name}><i className={query.isError || query.data?.dataStatus ? "cooling" : query.data ? "ready" : "pending"}/>{name}<small>{query.data?.dataStatus ? "Cached" : query.isError ? "Reconnecting" : query.data ? "Responding" : "Connecting"}</small></span>)}
+                {reads.map(({ name, query }) => <span key={name}><i className={query.isError || query.data?.dataStatus ? "cooling" : query.isFetching ? "pending" : query.data ? "ready" : "pending"}/>{name}<small>{query.data?.dataStatus ? "Cached" : query.isError ? "Update failed" : query.isFetching ? "Updating" : query.data ? ageLabel(query.data.fetchedAt, now) : "Connecting"}</small></span>)}
               </div>
-              {reads.some(({ query }) => query.error || query.data?.dataStatus) && <div className="source-recovery"><Clock3 size={16}/><p>{reads.some(({ query }) => query.data) ? "Keeping the last successful observations visible while the provider recovers." : "Connecting to the market sources. The strategy model is ready to explore below."} Updates resume automatically{refreshWait > 0 ? ` in ${refreshWait}s` : ""}.</p></div>}
+              {reads.some(({ query }) => query.error || query.data?.dataStatus) && <div className="source-recovery"><Clock3 size={16}/><p>{reads.some(({ query }) => query.data) ? "Keeping the last successful observations visible while the provider recovers." : "Connecting to the market sources. The strategy model is ready to explore below."} Each source retries automatically after its own cooldown{refreshWait > 0 ? ` (up to ${refreshWait}s)` : ""}.</p></div>}
               {!!prices.data?.unavailableSymbols?.length && <p className="partial-prices">Awaiting issuer quotes for {prices.data.unavailableSymbols.join(", ")}. Available quotes are shown below.</p>}
               {!!prices.data?.cachedSymbols?.length && <p className="partial-prices">Last available observations retained for {prices.data.cachedSymbols.join(", ")}. Original issuer timestamps are shown.</p>}
               <div className="market-visuals">
-                <ReferenceChart symbol={symbol} assets={sorted} book={prices.data} now={now} onSelect={setSymbol} registryCached={!!catalog.data?.dataStatus}/>
+                <ReferenceChart symbol={symbol} assets={sorted} book={prices.data} now={now} onSelect={setSymbol} registryCached={!!catalog.error || !!catalog.data?.dataStatus} sourceUnavailable={!!prices.error}/>
                 <div className="market-reading-card"><span className="eyebrow">READ BETWEEN THE PRICES</span><h2 className="display">One token.<br/><em>More than one price.</em></h2><p>The issuer’s USD reference tells you about the underlying exposure. A pool’s USDG price tells you about its liquidity.</p><img src="/artwork/hero-engraving.webp" alt=""/><button className="text-link" onClick={() => navigate("learn")}>How Spreadline connects them <ArrowUpRight size={14}/></button></div>
               </div>
               <div className="market-workspace">
@@ -1268,7 +1281,7 @@ function Workspace() {
                           {visible.map((asset) => {
                             const q = priceMap.get(asset.symbol);
                             const stale =
-                              !!q && (!!catalog.data?.dataStatus || !!prices.data?.dataStatus || !!prices.data?.cachedSymbols?.includes(asset.symbol) || now - Date.parse(q.generatedAt) > 90000);
+                              !!q && (!!catalog.error || !!catalog.data?.dataStatus || !!prices.error || !!prices.data?.dataStatus || !!prices.data?.cachedSymbols?.includes(asset.symbol) || !sourceIsCurrent(q.generatedAt, now, 90000));
                             return (
                               <tr
                                 key={asset.address}
@@ -1430,10 +1443,10 @@ function Workspace() {
           )}
           <footer className="desk-footer">
             <span>
-              <span
-                className={`connection-dot ${chainStale ? "offline" : ""}`}
-              />
-              {chainStale
+              {readPolicy.network && <span
+                className={`connection-dot ${readPolicy.network && chainStale ? "offline" : ""}`}
+              />}
+              {!readPolicy.network ? "Robinhood Chain" : chainStale
                 ? "Waiting for fresh chain data"
                 : `Robinhood Chain · ${n(network.data?.blockNumber, 0)}`}
             </span>
@@ -1473,13 +1486,7 @@ export function Dapp() {
     () =>
       new QueryClient({
         defaultOptions: {
-          queries: {
-            retry: false,
-            refetchOnWindowFocus: false,
-            refetchOnReconnect: false,
-            gcTime: 30 * 60 * 1000,
-            refetchIntervalInBackground: false,
-          },
+          queries: LIVE_QUERY_DEFAULTS,
           mutations: { retry: false },
         },
       }),

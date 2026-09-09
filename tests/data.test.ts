@@ -2,6 +2,10 @@ import "./deployment.test";
 import "./pwa.test";
 import "./position-planner.test";
 import "./demo-wallet.test";
+import "./trade-modal.test";
+import "./rpc-resilience.test";
+import "./live-freshness.test";
+import "./api-contract.test";
 import "./desk-service.test";
 import "./desk-transactions.test";
 import "./desk-contract.test";
@@ -20,7 +24,7 @@ import {
 } from "../server/validation";
 import { consumeBudget } from "../server/rate-limit";
 import { createMarketService } from "../server/market-service";
-import worker, { readBoundedJSON } from "../server/worker";
+import worker, { readBoundedJSON, providerRetryAfter } from "../server/worker";
 import { CHAIN_ID, PUBLIC_RPC } from "../src/lib/market-types";
 import { requestTransport } from "../server/rpc";
 import { createPublicClient, BaseError, HttpRequestError, decodeFunctionData, formatUnits, type Address } from "viem";
@@ -346,6 +350,20 @@ test("RPC calls batch within one request and remain isolated across concurrent r
   assert.ok(batches.every((r) => r.methods.length === 2));
 });
 
+test("complete pool discovery failures retain the provider status instead of returning an empty successful book", async (t) => {
+  t.mock.method(console, "error", () => {});
+  t.mock.method(globalThis, "fetch", async (_url, init) => {
+    const batch = JSON.parse(String(init?.body)) as { id: number; method: string; params: [{ data?: string }] }[];
+    if (batch.some((rpc) => rpc.method === "eth_call" && rpc.params[0].data !== "0x313ce567"))
+      return Response.json({ error: "limited" }, { status: 429, headers: { "retry-after": "90" } });
+    return Response.json(batch.map((rpc) => ({ jsonrpc: "2.0", id: rpc.id, result: rpc.method === "eth_chainId" ? "0x1237"
+      : rpc.method === "eth_getBlockByNumber" ? { number: "0xc", timestamp: `0x${Math.floor(Date.now() / 1000).toString(16)}`, hash: `0x${"1".repeat(64)}`, transactions: [], gasLimit: "0x1000000", gasUsed: "0x0" }
+      : `0x${"6".padStart(64, "0")}` })));
+  });
+  const service = createMarketService("https://pool-discovery.test", async () => ({ value: { assets: [asset] }, fetchedAt: new Date().toISOString() }));
+  await assert.rejects(service.pools("NVDA"), (error) => error instanceof BaseError && error.walk((cause) => cause instanceof HttpRequestError && cause.status === 429) instanceof HttpRequestError);
+});
+
 const canonical = "0xd0601CE157Db5bdC3162BbaC2a2C8aF5320D9EEC";
 const asset = {
   tokenSymbol: "NVDA",
@@ -647,6 +665,69 @@ test("server cooldown suppresses repeated upstream failures and returns Retry-Af
   });
 });
 
+test("provider retry deadlines honor short delays and HTTP dates instead of forcing a minute", async (t) => {
+  const now = Date.parse("2026-09-09T12:00:00Z");
+  assert.equal(providerRetryAfter("8", now), 8);
+  assert.equal(providerRetryAfter("Wed, 09 Sep 2026 12:00:12 GMT", now), 12);
+  assert.equal(providerRetryAfter("Wed, 09 Sep 2026 11:59:00 GMT", now), 1);
+  assert.equal(providerRetryAfter("999999", now), 300);
+  assert.equal(providerRetryAfter(null, now), 60);
+  assert.equal(providerRetryAfter("invalid", now), 60);
+  t.mock.method(console, "error", () => {});
+  t.mock.method(globalThis, "fetch", async () => Response.json({}, { status: 429, headers: { "retry-after": "8" } }));
+  await withTestCache(async (_entries, context) => {
+    const response = await worker.fetch(new Request("https://spreadline.test/api/prices?symbols=NVDA"), {} as Env, context);
+    assert.equal(response.status, 429);
+    assert.equal(response.headers.get("retry-after"), "8");
+  });
+});
+
+test("Worker cache TTLs never become a second CDN or browser cache", async (t) => {
+  let calls = 0;
+  t.mock.method(globalThis, "fetch", async () => { calls++; return Response.json({ quotes: [quote] }); });
+  await withTestCache(async (entries, context) => {
+    const request = new Request("https://spreadline.test/api/prices?symbols=NVDA");
+    const first = await worker.fetch(request, {} as Env, context);
+    const second = await worker.fetch(request, {} as Env, context);
+    for (const response of [first, second]) {
+      assert.equal(response.headers.get("cache-control"), "no-store");
+      assert.equal(response.headers.get("cdn-cache-control"), "no-store");
+      assert.equal(response.headers.get("vercel-cdn-cache-control"), "no-store");
+      assert.equal(response.headers.get("vary"), "Accept-Encoding");
+      assert.deepEqual((await response.json()).quotes, parsePrices({ quotes: [quote] }));
+    }
+    const saved = [...entries.entries()].find(([key]) => new URL(key).pathname.startsWith("/__response-v2/"))?.[1];
+    assert.equal(saved?.headers.get("cache-control"), "public, max-age=15");
+    assert.equal(saved?.headers.has("cdn-cache-control"), false);
+    assert.equal(calls, 1, "internal caching still shields the provider");
+  });
+});
+
+test("temporary issuer failure retains the original observation and recovers after a short pause", async (t) => {
+  let failing = false;
+  const warnings: string[] = [];
+  t.mock.method(console, "warn", (message) => { warnings.push(String(message)); });
+  t.mock.method(globalThis, "fetch", async () => failing ? Response.json({}, { status: 503 }) : Response.json({ quotes: [quote] }));
+  await withTestCache(async (entries, context) => {
+    const request = new Request("https://spreadline.test/api/prices?symbols=NVDA");
+    const first = await (await worker.fetch(request, {} as Env, context)).json();
+    for (const key of entries.keys()) if (new URL(key).pathname.startsWith("/__response-v2/") || new URL(key).pathname.startsWith("/__source-cache/")) entries.delete(key);
+    failing = true;
+    const retained = await (await worker.fetch(request, {} as Env, context)).json();
+    assert.deepEqual(retained.cachedSymbols, ["NVDA"]);
+    assert.equal(retained.fetchedAt, first.fetchedAt);
+    assert.deepEqual(retained.quotes, first.quotes);
+    const cooldown = [...entries.entries()].find(([key]) => new URL(key).pathname.startsWith("/__source-cooldown/"))?.[1];
+    assert.equal(cooldown?.headers.get("cache-control"), "public, max-age=15");
+    assert.deepEqual(JSON.parse(warnings[0]), { event: "issuer_source_unavailable", sourcePath: "/rhj/prices/NVDA", status: 503, retryAfter: 15, errorType: "UpstreamError", retainedObservation: true });
+    // The next successful source read removes the cached-symbol marker.
+    for (const key of entries.keys()) if (!new URL(key).pathname.startsWith("/__source-last-good/")) entries.delete(key);
+    failing = false;
+    const recovered = await (await worker.fetch(request, {} as Env, context)).json();
+    assert.deepEqual(recovered.cachedSymbols, []);
+  });
+});
+
 test("last successful prices survive partial outages with original timestamps and cached labels", async (t) => {
   let failing = false, calls = 0;
   t.mock.method(globalThis, "fetch", async () => {
@@ -683,6 +764,44 @@ test("client cooldown covers repeated manual reads and accepts both Retry-After 
   assert.equal(retryDeadline("90", now), now + 90000);
   assert.equal(retryDeadline("Sat, 05 Sep 2026 21:02:00 GMT", now), now + 120000);
   assert.ok(pollingInterval(30000, new DataError("wait", 429, Date.now() + 120000), 1) >= 120000);
+});
+
+test("client accepts API-prefixed wallet paths without duplicating the API segment", async (t) => {
+  const requests: string[] = [];
+  t.mock.method(globalThis, "fetch", async (url) => { requests.push(String(url)); return Response.json({ ok: true }); });
+  for (const path of ["desk?address=wallet-path", "/api/desk?address=wallet-path", "api/desk?address=wallet-path", "/desk?address=wallet-path"])
+    assert.deepEqual(await getData(path), { ok: true });
+  assert.deepEqual(requests, Array(4).fill("/api/desk?address=wallet-path"));
+});
+
+test("client request deadlines release stalled loads and leave a retryable service error", async (t) => {
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  t.mock.method(globalThis, "fetch", (_url, init) => new Promise<Response>((_resolve, reject) => {
+    init?.signal?.addEventListener("abort", () => reject(init.signal!.reason), { once: true });
+  }));
+  const pending = getData("test-stalled-data");
+  const assertion = assert.rejects(pending, (error) => error instanceof DataError && error.status === 503 && error.retryAt > Date.now());
+  t.mock.timers.tick(25000);
+  await assertion;
+});
+
+test("client deadline remains active while the response body is still loading", async (t) => {
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  let parsing!: () => void;
+  const started = new Promise<void>((resolve) => { parsing = resolve; });
+  t.mock.method(globalThis, "fetch", async (_url, init) => {
+    const response = Response.json({ ok: true });
+    response.json = () => new Promise((_resolve, reject) => {
+      init?.signal?.addEventListener("abort", () => reject(init.signal!.reason), { once: true });
+      parsing();
+    });
+    return response;
+  });
+  const pending = getData("test-stalled-response-body");
+  const assertion = assert.rejects(pending, (error) => error instanceof DataError && error.status === 503 && error.retryAt > Date.now());
+  await started;
+  t.mock.timers.tick(25000);
+  await assertion;
 });
 
 test("chart observations deduplicate issuer timestamps and reset at multiplier changes", () => {

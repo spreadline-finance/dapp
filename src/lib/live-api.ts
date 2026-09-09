@@ -9,23 +9,34 @@ export function retryDeadline(header: string | null, now = Date.now()) {
   const deadline = Number.isFinite(seconds) ? now + Math.max(0, seconds) * 1000 : Date.parse(header);
   return Number.isFinite(deadline) ? Math.max(now + 1000, deadline) : now + 60000;
 }
-export function pollingInterval(base: number, error: Error | null, failures = 0, retryAt?: string) {
-  const deadline = error instanceof DataError ? error.retryAt : retryAt ? Date.parse(retryAt) : 0;
-  return Math.max(base * (error ? Math.min(8, 2 ** Math.max(1, failures)) : 1), (deadline || 0) - Date.now() + 1000);
+export function pollingInterval(base: number, error: Error | null, failures = 0, retryAt?: string, now = Date.now()) {
+  const deadline = Math.max(error instanceof DataError && Number.isFinite(error.retryAt) ? error.retryAt : 0, retryAt && Number.isFinite(Date.parse(retryAt)) ? Date.parse(retryAt) : 0);
+  // Retry when the provider permits it, including after a background tab resumes.
+  // Multiplying the normal interval here could turn a 60s cooldown into 40m.
+  if (deadline > 0) return Math.max(1000, deadline - now + 1000);
+  return error ? Math.min(120000, base * 2 ** Math.min(3, Math.max(1, failures))) : base;
 }
 export async function getData<T>(path: string, signal?: AbortSignal): Promise<T> {
+  // Accept either endpoint names or same-origin API paths from wallet actions.
+  path = path.replace(/^\/?api\//, "").replace(/^\/+/, "");
   signal?.throwIfAborted();
   const snapshot = pausedSnapshots.get(path);
   if (snapshot && snapshot.retryAt > Date.now()) return snapshot.value as T;
   pausedSnapshots.delete(path);
   const waiting = cooldowns.get(path);
   if (waiting && waiting.retryAt > Date.now()) throw waiting;
+  const controller = new AbortController();
+  const abort = () => controller.abort(signal?.reason);
+  signal?.addEventListener("abort", abort, { once: true });
+  const timeout = setTimeout(() => controller.abort(new DOMException("Request timed out", "TimeoutError")), 25000);
+  const cleanup = () => { clearTimeout(timeout); signal?.removeEventListener("abort", abort); };
   let response: Response;
   try {
-    response = await fetch(`/api/${path}`, { signal, headers: { accept: "application/json" }, cache: "no-store" });
+    response = await fetch(`/api/${path}`, { signal: controller.signal, headers: { accept: "application/json" }, cache: "no-store" });
   } catch (error) {
+    cleanup();
     if (signal?.aborted) throw error;
-    const failure = new DataError("The data service is reconnecting. Your last observations stay on screen.", 503, Date.now() + 60000);
+    const failure = new DataError("The data request could not be completed. Please try again when the connection is available.", 503, Date.now() + 60000);
     cooldowns.set(path, failure);
     throw failure;
   }
@@ -37,6 +48,7 @@ export async function getData<T>(path: string, signal?: AbortSignal): Promise<T>
       ? "The market data service is unavailable on this deployment. Please try again later."
       : "The data service returned an invalid response. Please try again later." };
   }
+  finally { cleanup(); }
   if (!response.ok || !body || typeof body !== "object" || "error" in body) {
     const message = body && typeof body === "object" && "error" in body && typeof body.error === "string" ? body.error : "Unable to load live data.";
     const status = response.ok ? 503 : response.status;
@@ -58,7 +70,7 @@ export function displayNumber(value: number | string | null | undefined, decimal
 }
 export function shortAddress(value: string) { return `${value.slice(0, 6)}…${value.slice(-4)}`; }
 export function ageLabel(time: string | undefined, now: number) {
-  if (!time) return "Awaiting source";
+  if (!time || !Number.isFinite(now) || now <= 0 || Date.parse(time) > now + 60000) return "Awaiting source";
   const age = Math.max(0, Math.floor((now - Date.parse(time)) / 1000));
   if (!Number.isFinite(age)) return "Awaiting source";
   return age < 60 ? `${age}s ago` : age < 3600 ? `${Math.floor(age / 60)}m ago` : `${Math.floor(age / 3600)}h ago`;
