@@ -14,7 +14,7 @@ import { WalletButton, type WalletState } from "./wallet";
 import { SpreadTokenIcon } from "./spread-token";
 import "./token-rewards.css";
 
-function amount(value: string | null | undefined, decimals = 18, places = 6) {
+function amount(value: string | null | undefined, decimals = 18, places = 9) {
   if (value == null || !/^\d+$/.test(value)) return "—";
   const [whole, fraction = ""] = formatUnits(BigInt(value), decimals).split(".");
   const trimmed = fraction.slice(0, places).replace(/0+$/, "");
