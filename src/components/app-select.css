@@ -1,0 +1,15 @@
+.app-select{position:relative;min-width:0}
+.app-select-trigger{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:44px;padding:8px 11px;border:1px solid #d9e0cc;border-radius:8px;background:#f8faf2;color:#3d5130;text-align:left;box-shadow:0 1px 0 #ffffff inset;cursor:pointer}
+.app-select-trigger:hover:not(:disabled){background:#f1f5e9;border-color:#cdd9bd}
+.app-select-trigger:disabled{opacity:.55;cursor:not-allowed}
+.app-select-trigger>span,.app-select-menu button>span{display:grid;gap:2px;min-width:0}
+.app-select-trigger strong,.app-select-menu strong{font-size:14px;font-weight:500;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.app-select-trigger small,.app-select-menu small{font-size:11px;font-weight:400;line-height:1.35;color:#728263;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.app-select-trigger>svg{flex-shrink:0;color:#6f8258;transition:transform 160ms ease}
+.app-select.is-open .app-select-trigger>svg{transform:rotate(180deg)}
+.app-select-menu{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:50;max-height:min(320px,50vh);overflow:auto;padding:5px;border:1px solid #cfdac2;border-radius:10px;background:#fffef9;box-shadow:0 16px 45px #26361924}
+.app-select-menu button{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:42px;padding:8px 10px;border:0;border-radius:7px;background:transparent;color:#3d5130;text-align:left;cursor:pointer}
+.app-select-menu button:hover:not(:disabled),.app-select-menu button[aria-selected="true"]{background:#edf3e4}
+.app-select-menu button:disabled{opacity:.45;cursor:not-allowed}
+.app-select-menu svg{flex-shrink:0;color:#5b7a3d}
+.app-select :is(.app-select-trigger,.app-select-menu button):focus-visible{outline:2px solid #5c793c;outline-offset:3px}

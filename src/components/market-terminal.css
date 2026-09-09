@@ -9,7 +9,7 @@
 .terminal-watchlist button:last-child { border-right: 0; }.terminal-watchlist button.active { background: #e9efdd; border-bottom-color: #677f45; }.terminal-watchlist button:hover { background: #eff3e6; }.terminal-watchlist button:disabled { opacity: .6; }
 .terminal-watchlist button > span { display: flex; align-items: center; gap: 7px; font-size: 12px; margin-bottom: 11px; }.terminal-watchlist b { font-weight: 600; }.terminal-watchlist i { width: 5px; height: 5px; border-radius: 50%; background: #678d43; margin-left: auto; }.terminal-watchlist i.aged { background: #b48d49; }.terminal-watchlist i.halted { background: #ad5c40; }.terminal-watchlist i.waiting { background: #adb29f; }
 .terminal-watchlist strong { display: block; font-size: 20px; font-weight: 500; font-variant-numeric: tabular-nums; letter-spacing: -.5px; }.terminal-watchlist small { display: block; font-size: 12px; color: #7b826e; margin-top: 7px; white-space: nowrap; }
-.terminal-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 20px; }.terminal-toolbar label { display: flex; align-items: center; gap: 9px; min-width: 0; }.terminal-toolbar label > svg { color: #6c7c56; flex-shrink: 0; }.terminal-toolbar select { background: transparent; border: 0; font-size: 14px; font-weight: 500; color: #4b5a3a; width: 270px; max-width: 100%; min-height: 40px; }.terminal-toolbar > span { color: #7b846d; font-size: 12px; display: flex; align-items: center; gap: 9px; }.terminal-toolbar > span > i { width: 6px; height: 6px; background: #809464; border-radius: 50%; }.terminal-toolbar b { color: #bcc4b0; }
+.terminal-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 20px; }.terminal-token-select { display: flex; align-items: center; gap: 9px; min-width: 0; flex: 1; }.terminal-token-select > svg { color: #6c7c56; flex-shrink: 0; }.terminal-token-select .app-select { width: min(100%, 420px); }.terminal-toolbar > span { color: #7b846d; font-size: 12px; display: flex; align-items: center; gap: 9px; }.terminal-toolbar > span > i { width: 6px; height: 6px; background: #809464; border-radius: 50%; }.terminal-toolbar b { color: #bcc4b0; }
 .terminal-columns { display: grid; grid-template-columns: minmax(0, 1fr) 350px; gap: 24px; align-items: start; }.terminal-analysis { display: grid; gap: 22px; min-width: 0; }.terminal-trading { min-width: 0; position: sticky; top: 20px; }
 .asset-pulse { border-radius: 8px; overflow: hidden; background: #e6ecd9; border: 1px solid #d3ddc1; }.asset-pulse-heading { display: flex; justify-content: space-between; align-items: center; position: relative; padding: 25px 27px 21px; min-height: 157px; }.asset-pulse-heading > div { position: relative; z-index: 1; }.asset-pulse-heading h2 { font-family: var(--font-display), Georgia, serif; font-size: clamp(34px, 3.1vw, 49px); font-weight: 400; margin: 13px 0 10px; line-height: 1; letter-spacing: -1.4px; font-variant-numeric: tabular-nums; }.asset-pulse-heading .eyebrow { font-size: 12px; color: #718059; }.asset-pulse-heading p { color: #6b785b; font-size: 12px; margin: 0; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }.asset-pulse-heading p > span { border: 1px solid #c2d0ad; padding: 4px 6px; border-radius: 3px; font-size: 12px; color: #627a47; }.asset-pulse-heading p > span.reference-aged { border-color: #cbbd93; color: #887143; }.asset-pulse-heading > img { height: 145px; width: 170px; object-fit: cover; object-position: center; mix-blend-mode: multiply; opacity: .68; position: absolute; right: 7px; top: 6px; pointer-events: none; }
 .pulse-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); padding: 19px 26px; border-top: 1px solid #d1dcc0; background: #eef2e5; gap: 12px; }.pulse-metrics > div { min-width: 0; border-right: 1px solid #d8e0cc; }.pulse-metrics > div:last-child { border: 0; }.pulse-metrics span { display: block; font-size: 12px; color: #7a856a; margin-bottom: 9px; }.pulse-metrics strong { font-size: 17px; font-weight: 500; letter-spacing: -.35px; }.pulse-metrics small { font-size: 12px; color: #7f886d; }.pulse-source { display: flex; flex-wrap: wrap; gap: 6px 17px; font-size: 12px; color: #7b856b; padding: 11px 26px; border-top: 1px solid #d9e1cd; }
@@ -65,8 +65,8 @@
 
 /* A single market selector, useful pool rows and a dedicated swap surface. */
 .terminal-toolbar { padding: 10px 14px; background: #fffef9; border: 1px solid var(--terminal-line); border-radius: 9px; margin-bottom: 18px; }
-.terminal-toolbar label { flex: 1; }
-.terminal-toolbar select { width: min(100%, 420px); min-height: 44px; font-size: 15px; }
+.terminal-token-select { flex: 1; }
+.terminal-token-select .app-select-trigger { min-height: 44px; }
 .terminal-columns { grid-template-columns: minmax(0, 1fr) 380px; gap: 22px; }
 .asset-pulse-heading { min-height: 0; padding-block: 23px; }
 .asset-pulse-heading h2 { overflow-wrap: anywhere; }
@@ -129,7 +129,7 @@
 .ticket-external { min-height: 44px; border-radius: 6px; }
 .ticket-execution { margin-top: 18px; padding-top: 17px; }
 .ticket-execution .button { min-height: 44px; border-radius: 6px; white-space: normal; }
-.trade-ticket :is(button, a, input, select):focus-visible, .terminal-toolbar select:focus-visible, .corporate-board summary:focus-visible, .liquidity-row:focus-visible, .liquidity-refresh button:focus-visible { outline: 2px solid #5c793c; outline-offset: 3px; }
+.trade-ticket :is(button, a, input, select):focus-visible, .terminal-toolbar .app-select-trigger:focus-visible, .corporate-board summary:focus-visible, .liquidity-row:focus-visible, .liquidity-refresh button:focus-visible { outline: 2px solid #5c793c; outline-offset: 3px; }
 @media (max-width: 1180px) {
   .terminal-columns { grid-template-columns: minmax(0, 1fr) 330px; gap: 17px; }
   .trade-ticket { padding: 18px; }
@@ -147,7 +147,7 @@
 @media (max-width: 760px) {
   .desk[data-view="terminal"] .desk-main { padding-inline: 16px; }
   .terminal-toolbar { padding: 6px 10px; margin-bottom: 14px; }
-  .terminal-toolbar select { width: 100%; font-size: 16px; }
+  .terminal-token-select .app-select { width: 100%; }
   .trade-ticket { padding: 16px; }
   .trade-amount-card { padding: 12px; }
   .desk .market-terminal .trade-ticket .trade-pay input, .trade-receive .trade-amount-row > strong { font-size: 30px; }

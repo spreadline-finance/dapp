@@ -6,6 +6,7 @@ import { DataError, ageLabel, displayNumber as n, getData, pollingInterval, shor
 import { sourceIsCurrent } from "@/lib/live-freshness";
 import { EXPLORER, type CorporateActions, type NetworkState, type PoolBook, type PriceBook, type StockAsset } from "@/lib/market-types";
 import { ReferenceChart } from "./market-charts";
+import { AppSelect } from "./app-select";
 import { StockLogo } from "./stock-logo";
 import { ProtocolLogo } from "./protocol-logo";
 import { TradeTicket } from "./trade-ticket";
@@ -35,8 +36,9 @@ export function MarketTerminal({ assets, book, network, symbol, onSelect, now, w
   const poolCooldown = Math.max(0, Math.ceil((poolRetryAt - now) / 1000));
   const poolsCached = !!pools.data && (!!pools.error || !!pools.data.dataStatus || !sourceIsCurrent(pools.data.blockTimestamp, now, 90000));
   const poolStatus = pools.data ? poolsCached ? "Last snapshot" : pools.data.failedReads ? "Partial data" : "Live snapshot" : !asset ? "Token data required" : pools.error ? "Unavailable" : "Loading";
+  const assetOptions = assets.length ? assets.map((a) => ({ value: a.symbol, label: a.symbol, detail: a.name })) : [{ value: symbol, label: symbol }];
   return <div className="market-terminal">
-    <div className="terminal-toolbar"><label><StockLogo symbol={symbol} size={30}/><select aria-label="Choose a Stock Token" value={symbol} onChange={(e) => onSelect(e.target.value)}>{assets.length ? assets.map((a) => <option key={a.address} value={a.symbol}>{a.symbol} — {a.name}</option>) : <option>{symbol}</option>}</select></label><span>Stock Token / USDG <b>·</b> Uniswap V3 pools</span></div>
+    <div className="terminal-toolbar"><div className="terminal-token-select"><StockLogo symbol={symbol} size={30}/><AppSelect ariaLabel="Choose a Stock Token" value={symbol} options={assetOptions} onChange={onSelect}/></div><span>Stock Token / USDG <b>·</b> Uniswap V3 pools</span></div>
     <div className="terminal-columns"><div className="terminal-analysis">
       <section className="asset-pulse"><div className="asset-pulse-heading"><div><span className="eyebrow stock-identity"><StockLogo symbol={symbol} size={38}/>{asset?.name ?? symbol} / STOCK TOKEN</span><h2>{bid !== null && ask !== null ? `$${n((bid + ask) / 2, 4)}` : priceError ? "Reference unavailable" : "Awaiting reference"}</h2><p>USD reference per token <span className={referenceOld || quote?.halted ? "reference-aged" : ""}>{quote?.halted ? "Underlying halted" : referenceOld ? "Last source observation" : quote ? "Issuer quote" : "Awaiting issuer"}</span></p></div></div>
         <div className="pulse-metrics"><div><span>Reference bid</span><strong>{bid === null ? "—" : `$${n(bid, 4)}`}</strong></div><div><span>Reference ask</span><strong>{ask === null ? "—" : `$${n(ask, 4)}`}</strong></div><div><span>Bid / ask spread</span><strong>{spread === null ? "—" : n(spread, 2)}<small> bps</small></strong></div><div><span>Underlying volume</span><strong>{compact(quote?.dailyTradingVolume)}</strong></div></div>

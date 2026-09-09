@@ -928,15 +928,15 @@
   background: #f6f7ef;
   margin-bottom: 27px;
 }
-.route-token-input select {
-  font-size: 13px;
-  border: none;
-  background: transparent;
+.route-token-input .app-select {
   width: 100%;
-  min-width: 0;
-  cursor: pointer;
-  color: #525f40;
-  padding-right: 5px;
+}
+.route-token-input .app-select-trigger {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+  min-height: 34px;
 }
 .route-amount-input {
   display: flex;
@@ -2120,7 +2120,7 @@
   .route-builder-body {
     padding: 23px;
   }
-  .route-token-input select {
+  .route-token-input .app-select-trigger strong {
     font-size: 14px;
   }
   .route-builder-body > label {
@@ -2434,7 +2434,7 @@
     width: 36px;
     height: 36px;
   }
-  .route-token-input select,
+  .route-token-input .app-select-trigger strong,
   .route-amount-input input,
   .portfolio-top input {
     font-size: 16px;

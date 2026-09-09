@@ -70,6 +70,7 @@ import { recordPrices } from "@/lib/price-observations";
 import { OpportunityCheck, QuoteDecision, ResearchJournal } from "./opportunity-check";
 import { saveObservation } from "@/lib/research-journal";
 import { MarketTerminal } from "./market-terminal";
+import { AppSelect } from "./app-select";
 import { StockLogo } from "./stock-logo";
 import { ProtocolLogo } from "./protocol-logo";
 import { Lending } from "./lending";
@@ -360,6 +361,7 @@ function RouteAnalysis({
   const quoteCooldown = quote.error instanceof DataError ? Math.max(0, Math.ceil((quote.error.retryAt - now) / 1000)) : 0;
   const expired = !!data && now >= Date.parse(data.expiresAt);
   const selected = assets.find((a) => a.symbol === symbol);
+  const routeAssetOptions = assets.filter((a) => a.active).map((a) => ({ value: a.symbol, label: a.symbol, detail: a.name }));
   const amountValid =
     /^\d{1,7}(\.\d{1,6})?$/.test(amount) &&
     Number(amount) >= 1 &&
@@ -379,23 +381,16 @@ function RouteAnalysis({
             <label htmlFor="route-asset">Stock Token</label>
             <div className="route-token-input">
               {selected && <StockLogo symbol={selected.symbol} />}
-              <select
-                id="route-asset"
+              <AppSelect
+                ariaLabel="Stock Token"
                 value={symbol}
-                disabled={quote.isPending || !assets.length}
-                onChange={(e) => {
+                disabled={quote.isPending || !routeAssetOptions.length}
+                options={routeAssetOptions}
+                onChange={(value) => {
                   quote.reset();
-                  setSymbol(e.target.value);
+                  setSymbol(value);
                 }}
-              >
-                {assets
-                  .filter((a) => a.active)
-                  .map((a) => (
-                    <option key={a.address} value={a.symbol}>
-                      {a.symbol} — {a.name}
-                    </option>
-                  ))}
-              </select>
+              />
             </div>
             <label htmlFor="route-amount">
               Starting amount <span>USDG</span>
